@@ -1,5 +1,6 @@
 import os
 import signal
+import time
 import sys
 from typing import List
 
@@ -50,17 +51,24 @@ if __name__ == "__main__":
     trace: List[float] = parse(sys.argv[1])
     first: bool = True
     length: int = len(trace)
-    os.system(f"sudo tc qdisc del dev {NIC} root")
+    os.system(f"tc qdisc del dev {NIC} root")
+    last_bandwidth: float = 0.0
     for i, t in enumerate(trace):
         t = max(2, t)
+        if t == last_bandwidth:
+            time.sleep(1)
+            continue
+        else:
+            last_bandwidth = t
+            pass
         print(f"[{i+1}/{length}] limiting bandwidth to {t}Mbps")
         if first:
-            os.system(f"sudo tc qdisc add dev {NIC} root netem rate {t}mbit")
+            os.system(f"tc qdisc add dev {NIC} root netem rate {t}mbit")
             first = False
         else:
-            os.system(
-                f"sudo tc qdisc change dev {NIC} root netem rate {t}mbit")
+            os.system(f"tc qdisc change dev {NIC} root netem rate {t}mbit")
             pass
+        time.sleep(1)
         pass
     os.system(f"tc qdisc del dev {NIC} root")
     pass
