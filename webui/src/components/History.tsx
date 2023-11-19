@@ -103,13 +103,11 @@ const History = () => {
           newOption.series[0].data.push(
             bytesPerSecondToKbps(
               data.bytes_recv - dataqueue[dataqueue.length - 1].bytes_recv,
-              0.5,
             ),
           );
           newOption.series[1].data.push(
             bytesPerSecondToKbps(
               data.bytes_sent - dataqueue[dataqueue.length - 1].bytes_sent,
-              0.5,
             ),
           );
           if (newOption.xAxis.data.length > 45) {

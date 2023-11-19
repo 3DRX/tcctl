@@ -28,7 +28,6 @@ export function parseInterfaceData(data: number[]): InterfaceData | null {
 
 export function bytesPerSecondToKbps(
   bytes: number,
-  timeInterval: number,
 ): number {
-  return ((bytes / timeInterval) * 8) / 1000;
+  return ((bytes) * 8) / 1024;
 }
