@@ -1,5 +1,7 @@
 # tcctl
 
+![tcctl](./README.assets/tcctl.png)
+
 > A webui for tc netem, designed to be run on OpenWRT routers.
 
 Dependencies to run on router: python3 python3-psutil python3-flask
