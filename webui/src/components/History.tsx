@@ -133,7 +133,7 @@ const History = () => {
   };
 
   return (
-    <>
+    <div style={{ alignItems: "center" }}>
       <Select
         defaultValue="Select a NIC"
         style={{ width: 120 }}
@@ -157,10 +157,10 @@ const History = () => {
       <ReactEcharts
         option={defaultOption}
         ref={echart}
-        style={{ height: "45vh", width: "100vw" }}
+        style={{ height: "80vh", width: "100vw" }}
       />
       <NetemForm nic={nic} />
-    </>
+    </div>
   );
 };
 

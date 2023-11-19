@@ -219,42 +219,55 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
   };
 
   return (
-    <Form
-      name="customized_form_controls"
-      layout="inline"
-      onFinish={onFinish}
-      initialValues={{
-        delay: {
-          number: 0,
-          unit: "ms",
-        },
-        rate: {
-          number: 1,
-          unit: "Mbps",
-        },
-        loss: {
-          number: 0,
-        },
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
-      <Form.Item name="delay" label="Delay" rules={[{ validator: checkGe0 }]}>
-        <DelayInput />
-      </Form.Item>
-      <Form.Item name="loss" label="Loss (%)" rules={[{ validator: checkGe0 }]}>
-        <LossInput />
-      </Form.Item>
-      <Form.Item name="rate" label="Rate" rules={[{ validator: checkRate }]}>
-        <RateInput />
-      </Form.Item>
-      <Form.Item>
-        <Button type="primary" htmlType="submit">
-          Submit
+      <Form
+        name="customized_form_controls"
+        layout="inline"
+        onFinish={onFinish}
+        initialValues={{
+          delay: {
+            number: 0,
+            unit: "ms",
+          },
+          rate: {
+            number: 1,
+            unit: "Mbps",
+          },
+          loss: {
+            number: 0,
+          },
+        }}
+      >
+        <Form.Item name="delay" label="Delay" rules={[{ validator: checkGe0 }]}>
+          <DelayInput />
+        </Form.Item>
+        <Form.Item
+          name="loss"
+          label="Loss (%)"
+          rules={[{ validator: checkGe0 }]}
+        >
+          <LossInput />
+        </Form.Item>
+        <Form.Item name="rate" label="Rate" rules={[{ validator: checkRate }]}>
+          <RateInput />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Submit
+          </Button>
+        </Form.Item>
+        <Button type="default" onClick={onReset}>
+          Reset
         </Button>
-      </Form.Item>
-      <Button type="default" onClick={onReset}>
-        Reset
-      </Button>
-    </Form>
+      </Form>
+    </div>
   );
 };
 
