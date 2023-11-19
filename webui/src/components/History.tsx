@@ -159,7 +159,7 @@ const History = () => {
         ref={echart}
         style={{ height: "45vh", width: "100vw" }}
       />
-      <NetemForm />
+      <NetemForm nic={nic} />
     </>
   );
 };
