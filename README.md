@@ -14,3 +14,4 @@ pip install flask
 
 Usage: install dependencies, decompress build.zip (download available in release),
 and run `run_prod.sh`.
+Then go to `http://<host_name_of_your_router>:8080`.
