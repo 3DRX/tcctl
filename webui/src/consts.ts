@@ -1,1 +1,1 @@
-export const SERVERPORT: number = 5000;
+export const SERVERPORT: number = 8080;
