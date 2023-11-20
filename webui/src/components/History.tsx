@@ -1,4 +1,5 @@
-import { Select } from "antd";
+import { Select, Tabs } from "antd";
+import type { TabsProps } from "antd";
 import { SERVERPORT } from "../consts.ts";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
@@ -9,6 +10,7 @@ import {
   bytesPerSecondToKbps,
 } from "../utils.ts";
 import NetemForm from "./NetemForm.tsx";
+import TraceForm from "./TraceForm.tsx";
 
 type option = {
   label: string;
@@ -130,11 +132,37 @@ const History = () => {
       });
   };
 
+  const tabItems: TabsProps["items"] = [
+    {
+      key: "1",
+      label: "Manual",
+      children: <NetemForm nic={nic} />,
+    },
+    {
+      key: "2",
+      label: "Trace",
+      children: <TraceForm nic={nic} />,
+    },
+  ];
+
+  const onTabChange = (_: string) => {
+    axios
+      .put(`http://${window.location.hostname}:${SERVERPORT}/api/v1/netem`, {
+        NIC: nic,
+        delay: -1,
+        loss: -1,
+        rate: -1,
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   return (
     <div style={{ alignItems: "center" }}>
       <Select
         defaultValue="Select a NIC"
-        style={{ width: 120 }}
+        style={{ width: 140 }}
         onChange={(value: string) => {
           if (echart && echart.current) {
             echart.current.getEchartsInstance().clear();
@@ -155,9 +183,11 @@ const History = () => {
       <ReactEcharts
         option={defaultOption}
         ref={echart}
-        style={{ height: "80vh", width: "100vw" }}
+        style={{ height: "70vh", width: "98vw", marginBottom: "-3em" }}
       />
-      <NetemForm nic={nic} />
+      <div style={{ width: "80vw", marginLeft: "auto", marginRight: "auto" }}>
+        <Tabs defaultActiveKey="1" items={tabItems} onChange={onTabChange} />
+      </div>
     </div>
   );
 };

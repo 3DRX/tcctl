@@ -26,8 +26,23 @@ export function parseInterfaceData(data: number[]): InterfaceData | null {
   }
 }
 
-export function bytesPerSecondToKbps(
-  bytes: number,
-): number {
-  return ((bytes) * 8) / 1024;
+export function bytesPerSecondToKbps(bytes: number): number {
+  return (bytes * 8) / 1024;
+}
+
+export function isTracefileValid(input: string): boolean {
+  const lines: string[] = input.split("\n");
+  lines.pop();
+  for (const line of lines) {
+    const lineSplit: string[] = line.split(" ");
+    if (lineSplit.length !== 3) {
+      return false;
+    }
+    for (const value of lineSplit) {
+      if (isNaN(Number(value))) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
