@@ -2,7 +2,7 @@
 
 ![tcctl](./README.assets/tcctl.png)
 
-> A webui for tc netem, designed to be run on OpenWRT routers.
+> A webui for tc netem, designed to be run on OpenWrt routers.
 
 ## Features
 
