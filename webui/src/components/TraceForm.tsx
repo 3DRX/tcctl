@@ -39,7 +39,11 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic }) => {
         if (currentData.length === 5) {
           currentData.shift();
         }
-        setcurrentData([...currentData, dat]);
+        const datSplit: string[] = dat.split(" ");
+        setcurrentData([
+          ...currentData,
+          `delay ${datSplit[0]}ms, loss ${datSplit[1]}%, rate ${datSplit[2]}Mbps`,
+        ]);
         const flag = sendTraceLine(dat, nic);
         if (!flag) {
           console.log(`Error: send ${dat} to ${nic}`);
