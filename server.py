@@ -29,11 +29,19 @@ def put_netem():
     # set netem
     for ctl in controllers:
         if ctl.NIC == body["NIC"]:
-            ctl.set(body["delay"], body["loss"], body["rate"])
+            ctl.set(
+                float(body["delay"]),
+                float(body["loss"]),
+                float(body["rate"]),
+            )
             return ""
         pass
     controllers.append(NetemController(body["NIC"]))
-    controllers[-1].set(body["delay"], body["loss"], body["rate"])
+    controllers[-1].set(
+        float(body["delay"]),
+        float(body["loss"]),
+        float(body["rate"]),
+    )
     return ""
 
 

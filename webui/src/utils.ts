@@ -1,3 +1,6 @@
+import axios from "axios";
+import { SERVERPORT } from "./consts";
+
 export type InterfaceData = {
   bytes_sent: number;
   bytes_recv: number;
@@ -39,10 +42,35 @@ export function isTracefileValid(input: string): boolean {
       return false;
     }
     for (const value of lineSplit) {
-      if (isNaN(Number(value))) {
+      const num = Number(value);
+      if (isNaN(num) || num < 0) {
         return false;
       }
     }
   }
+  return true;
+}
+
+export function sendTraceLine(line: string, nic: string): boolean {
+  const lineSplit: any[] = line.split(" ");
+  lineSplit.forEach((n) => Number(n));
+  if (lineSplit.length !== 3) {
+    return false;
+  }
+  for (const num of lineSplit) {
+    if (isNaN(num) || num < 0) {
+      return false;
+    }
+  }
+  axios
+    .put(`http://${window.location.hostname}:${SERVERPORT}/api/v1/netem`, {
+      NIC: nic,
+      delay: lineSplit[0],
+      loss: lineSplit[1],
+      rate: lineSplit[2],
+    })
+    .catch((err) => {
+      console.log(err);
+    });
   return true;
 }

@@ -146,6 +146,9 @@ const History = () => {
   ];
 
   const onTabChange = (_: string) => {
+    if (nic === "") {
+      return;
+    }
     axios
       .put(`http://${window.location.hostname}:${SERVERPORT}/api/v1/netem`, {
         NIC: nic,

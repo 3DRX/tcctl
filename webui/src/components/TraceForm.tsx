@@ -1,8 +1,8 @@
 import { UploadOutlined } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
-import { Button, Upload } from "antd";
-import { useState } from "react";
-import { isTracefileValid } from "../utils";
+import { Button, Upload, List } from "antd";
+import { useEffect, useState } from "react";
+import { isTracefileValid, sendTraceLine } from "../utils";
 
 export interface TraceFormProps {
   nic: string;
@@ -10,6 +10,9 @@ export interface TraceFormProps {
 
 const TraceForm: React.FC<TraceFormProps> = ({ nic }) => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [data, setdata] = useState<string[]>([]);
+  const [currentData, setcurrentData] = useState<string[]>([]);
+  const [startTrace, setstartTrace] = useState(false);
 
   const uploadProps: UploadProps = {
     onRemove: (file) => {
@@ -24,7 +27,31 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic }) => {
     },
     fileList,
     accept: ".txt",
+    disabled: startTrace,
   };
+
+  useEffect(() => {
+    if (!startTrace || data.length === 0) {
+      return;
+    } else {
+      const intervalId = setInterval(() => {
+        const dat: any = data.shift();
+        if (currentData.length === 5) {
+          currentData.shift();
+        }
+        setcurrentData([...currentData, dat]);
+        const flag = sendTraceLine(dat, nic);
+        if (!flag) {
+          console.log(`Error: send ${dat} to ${nic}`);
+        }
+        if (data.length === 0) {
+          // stop interval
+          setstartTrace(false);
+        }
+      }, 1000);
+      return () => clearInterval(intervalId);
+    }
+  }, [startTrace, currentData]);
 
   const onConfirm = () => {
     if (fileList.length === 1) {
@@ -34,6 +61,11 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic }) => {
         reader.onload = (e: any) => {
           if (isTracefileValid(e.target.result)) {
             console.log("Valid trace file");
+            const dat = e.target.result.split("\n");
+            dat.pop();
+            setdata(dat);
+            setcurrentData([]);
+            setstartTrace(true);
           } else {
             console.log("Invalid trace file");
             setFileList([]);
@@ -56,17 +88,28 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic }) => {
   return (
     <div>
       <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />} disabled={fileList.length >= 1}>
+        <Button
+          icon={<UploadOutlined />}
+          disabled={fileList.length >= 1 || nic === ""}
+          onClick={() => setcurrentData([])}
+        >
           Select File
         </Button>
       </Upload>
       <Button
-        disabled={fileList.length === 0}
+        disabled={fileList.length === 0 || startTrace}
+        loading={startTrace}
         onClick={onConfirm}
-        style={{ marginTop: "1em" }}
+        style={{ marginTop: "1em", marginBottom: "1em" }}
       >
-        Confirm
+        Start
       </Button>
+      <List
+        size="small"
+        bordered
+        dataSource={currentData}
+        renderItem={(item) => <List.Item>{item}</List.Item>}
+      />
     </div>
   );
 };
