@@ -55,7 +55,7 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic }) => {
       }, 1000);
       return () => clearInterval(intervalId);
     }
-  }, [startTrace, currentData]);
+  }, [startTrace, currentData, data, nic]);
 
   const onConfirm = () => {
     if (fileList.length === 1) {

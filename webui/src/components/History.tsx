@@ -17,7 +17,7 @@ type option = {
   value: string;
 };
 
-const defaultOption: any = {
+const defaultOption = {
   legend: {
     orient: "horizontal",
     left: "center",
@@ -53,7 +53,7 @@ const History = () => {
   const [count, setcount] = useState<number>(0);
   const [dataqueue, setdataqueue] = useState<InterfaceData[]>([]);
   const [option, setoption] = useState(defaultOption);
-  const echart = useRef<any>(null);
+  const echart = useRef(null);
 
   useEffect(() => {
     axios
@@ -61,7 +61,7 @@ const History = () => {
         `http://${window.location.hostname}:${SERVERPORT}/api/v1/interfaces`,
       )
       .then((res) => {
-        let newInterfaces = [];
+        const newInterfaces = [];
         for (const nic in res.data) {
           newInterfaces.push({
             label: nic,
@@ -76,6 +76,51 @@ const History = () => {
   }, []);
 
   useEffect(() => {
+    const generateChart = () => {
+      axios
+        .post(
+          `http://${window.location.hostname}:${SERVERPORT}/api/v1/interfaces`,
+        )
+        .then((res) => {
+          const data: InterfaceData | null = parseInterfaceData(res.data[nic]);
+          let newDataqueue: InterfaceData[] = [];
+          if (data === null) {
+            console.log("warning: data is invalid");
+            return;
+          }
+          const newOption = option;
+          if (dataqueue.length !== 0) {
+            newOption.xAxis.data.push(count - 1);
+            newOption.series[0].data.push(
+              bytesPerSecondToKbps(
+                data.bytes_recv - dataqueue[dataqueue.length - 1].bytes_recv,
+              ),
+            );
+            newOption.series[1].data.push(
+              bytesPerSecondToKbps(
+                data.bytes_sent - dataqueue[dataqueue.length - 1].bytes_sent,
+              ),
+            );
+            if (newOption.xAxis.data.length > 45) {
+              newOption.xAxis.data.shift();
+              newOption.series[0].data.shift();
+              newOption.series[1].data.shift();
+              newDataqueue = dataqueue.slice(1);
+            } else {
+              newDataqueue = dataqueue;
+            }
+          }
+          if (echart && echart.current) {
+            echart.current.getEchartsInstance().setOption(newOption);
+          }
+          setoption(newOption);
+          setdataqueue([...newDataqueue, data]);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    };
+
     if (nic === "") {
       return;
     } else {
@@ -85,52 +130,7 @@ const History = () => {
       }, 500);
       return () => clearInterval(intervalId);
     }
-  }, [nic, count]);
-
-  const generateChart = () => {
-    axios
-      .post(
-        `http://${window.location.hostname}:${SERVERPORT}/api/v1/interfaces`,
-      )
-      .then((res) => {
-        const data: InterfaceData | null = parseInterfaceData(res.data[nic]);
-        let newDataqueue: InterfaceData[] = [];
-        if (data === null) {
-          console.log("warning: data is invalid");
-          return;
-        }
-        const newOption = option;
-        if (dataqueue.length !== 0) {
-          newOption.xAxis.data.push(count - 1);
-          newOption.series[0].data.push(
-            bytesPerSecondToKbps(
-              data.bytes_recv - dataqueue[dataqueue.length - 1].bytes_recv,
-            ),
-          );
-          newOption.series[1].data.push(
-            bytesPerSecondToKbps(
-              data.bytes_sent - dataqueue[dataqueue.length - 1].bytes_sent,
-            ),
-          );
-          if (newOption.xAxis.data.length > 45) {
-            newOption.xAxis.data.shift();
-            newOption.series[0].data.shift();
-            newOption.series[1].data.shift();
-            newDataqueue = dataqueue.slice(1);
-          } else {
-            newDataqueue = dataqueue;
-          }
-        }
-        if (echart && echart.current) {
-          echart.current.getEchartsInstance().setOption(newOption);
-        }
-        setoption(newOption);
-        setdataqueue([...newDataqueue, data]);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+  }, [nic, count, dataqueue, option]);
 
   const tabItems: TabsProps["items"] = [
     {
@@ -145,7 +145,7 @@ const History = () => {
     },
   ];
 
-  const onTabChange = (_: string) => {
+  const onTabChange = () => {
     if (nic === "") {
       return;
     }

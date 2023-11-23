@@ -2,6 +2,7 @@ import { Button, Form, Input, Select } from "antd";
 import axios from "axios";
 import React, { useState } from "react";
 import { SERVERPORT } from "../consts";
+import { Store } from "antd/es/form/interface";
 
 const { Option } = Select;
 
@@ -164,7 +165,7 @@ export interface NetemFormProps {
 }
 
 const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
-  const onFinish = (values: any) => {
+  const onFinish = (values: Store) => {
     if (nic === "") return;
     console.log("Received values from form: ", values);
     axios
