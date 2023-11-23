@@ -10,3 +10,6 @@ build:
 	@cp ./run_prod.sh ./server.py ./tcctl.py $(TARGET_DIR)
 	@echo "Done."
 
+clean:
+	rm -rf $(TARGET_DIR) __pycache__
+

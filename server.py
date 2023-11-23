@@ -4,6 +4,7 @@ import psutil
 import os
 from logging.config import dictConfig
 from typing import Dict
+import atexit
 
 dictConfig(
     {
@@ -31,6 +32,16 @@ dictConfig(
 
 app: Flask = Flask(__name__, static_folder="./dist/")
 controllers: Dict[str, NetemController] = {}
+
+
+def on_exit():
+    for ctl in controllers:
+        del controllers[ctl]
+        pass
+    pass
+
+
+atexit.register(on_exit)
 
 
 @app.route("/api/v1/interfaces", methods=["POST"])
