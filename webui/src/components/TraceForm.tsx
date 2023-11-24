@@ -1,6 +1,6 @@
 import { UploadOutlined } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
-import { Button, Upload, List } from "antd";
+import { Button, Upload, List, message } from "antd";
 import { useEffect, useState } from "react";
 import { isTracefileValid, sendTraceLine } from "../utils";
 
@@ -64,15 +64,18 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic }) => {
         const reader = new FileReader();
         reader.onload = (e: any) => {
           if (isTracefileValid(e.target.result)) {
-            console.log("Valid trace file");
+            message.success(`${file.name} uploaded successfully`);
             const dat = e.target.result.split("\n");
             dat.pop();
             setdata(dat);
             setcurrentData([]);
             setstartTrace(true);
           } else {
-            console.log("Invalid trace file");
-            setFileList([]);
+            message.error(`${file.name} is invalid trace file`);
+            const theFile = fileList[0];
+            theFile.status = "error";
+            theFile.response = "Invalid trace file";
+            setFileList([theFile]);
             return;
           }
         };
@@ -104,13 +107,14 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic }) => {
         disabled={fileList.length === 0 || startTrace}
         loading={startTrace}
         onClick={onConfirm}
-        style={{ marginTop: "1em", marginBottom: "1em" }}
+        style={{ marginTop: "0.5em", marginBottom: "0.5em" }}
       >
         Start
       </Button>
       <List
         size="small"
         bordered
+        locale={{ emptyText: "No trace history" }}
         dataSource={currentData}
         renderItem={(item) => <List.Item>{item}</List.Item>}
       />

@@ -218,6 +218,10 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
       });
   };
 
+  const formItemStyle: React.CSSProperties = {
+    marginTop: "1em",
+  };
+
   return (
     <div
       style={{
@@ -245,25 +249,36 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
           },
         }}
       >
-        <Form.Item name="delay" label="Delay" rules={[{ validator: checkGe0 }]}>
+        <Form.Item
+          name="delay"
+          label="Delay"
+          rules={[{ validator: checkGe0 }]}
+          style={formItemStyle}
+        >
           <DelayInput />
         </Form.Item>
         <Form.Item
           name="loss"
           label="Loss (%)"
           rules={[{ validator: checkGe0 }]}
+          style={formItemStyle}
         >
           <LossInput />
         </Form.Item>
-        <Form.Item name="rate" label="Rate" rules={[{ validator: checkRate }]}>
+        <Form.Item
+          name="rate"
+          label="Rate"
+          rules={[{ validator: checkRate }]}
+          style={formItemStyle}
+        >
           <RateInput />
         </Form.Item>
-        <Form.Item>
+        <Form.Item style={formItemStyle}>
           <Button type="primary" htmlType="submit">
             Submit
           </Button>
         </Form.Item>
-        <Button type="default" onClick={onReset}>
+        <Button type="default" onClick={onReset} style={formItemStyle}>
           Reset
         </Button>
       </Form>

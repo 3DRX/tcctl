@@ -165,7 +165,7 @@ const History = () => {
     <div style={{ alignItems: "center" }}>
       <Select
         defaultValue="Select a NIC"
-        style={{ width: 140 }}
+        style={{ width: 140, marginTop: "1em", marginBottom: "0.5em" }}
         onChange={(value: string) => {
           if (echart && echart.current) {
             echart.current.getEchartsInstance().clear();
@@ -186,7 +186,12 @@ const History = () => {
       <ReactEcharts
         option={defaultOption}
         ref={echart}
-        style={{ height: "70vh", width: "98vw", marginBottom: "-3em" }}
+        style={{
+          height: "70vh",
+          maxHeight: "30em",
+          width: "98vw",
+          marginBottom: "-3em",
+        }}
       />
       <div style={{ width: "80vw", marginLeft: "auto", marginRight: "auto" }}>
         <Tabs defaultActiveKey="1" items={tabItems} onChange={onTabChange} />
