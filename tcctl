@@ -1,0 +1,13 @@
+#!/bin/sh /etc/rc.common
+APP_DIR=/root/tcctl
+USER=root
+START=99
+STOP=10
+start() {
+    echo "Starting tcctl..."
+    cd $APP_DIR
+    $APP_DIR/start-tcctl.sh
+}
+stop() {
+    $APP_DIR/stop-tcctl.sh
+}

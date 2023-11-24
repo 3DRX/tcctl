@@ -19,18 +19,13 @@ dictConfig(
                 "class": "logging.StreamHandler",
                 "stream": "ext://flask.logging.wsgi_errors_stream",
                 "formatter": "default",
-            },
-            "custom_handler": {
-                "class": "logging.FileHandler",
-                "formatter": "default",
-                "filename": "tcctl.log",
-            },
+            }
         },
-        "root": {"level": "INFO", "handlers": ["wsgi", "custom_handler"]},
+        "root": {"level": "INFO", "handlers": ["wsgi"]},
     }
 )
 
-app: Flask = Flask(__name__, static_folder="./dist/")
+tcctl_server: Flask = Flask(__name__, static_folder="./dist/")
 controllers: Dict[str, NetemController] = {}
 
 
@@ -44,33 +39,33 @@ def on_exit():
 atexit.register(on_exit)
 
 
-@app.route("/api/v1/interfaces", methods=["POST"])
+@tcctl_server.route("/api/v1/interfaces", methods=["POST"])
 def post_interfaces():
     return psutil.net_io_counters(pernic=True)
 
 
-@app.route("/api/v1/netem", methods=["PUT"])
+@tcctl_server.route("/api/v1/netem", methods=["PUT"])
 def put_netem():
     body = request.get_json()
     # sanity check
     if "NIC" not in body:
-        app.logger.warning(f"missing NIC in {body}")
+        tcctl_server.logger.warning(f"missing NIC in {body}")
         return "missing NIC", 400
     if "delay" not in body:
-        app.logger.warning(f"missing delay in {body}")
+        tcctl_server.logger.warning(f"missing delay in {body}")
         return "missing delay", 400
     if "loss" not in body:
-        app.logger.warning(f"missing loss in {body}")
+        tcctl_server.logger.warning(f"missing loss in {body}")
         return "missing loss", 400
     if "rate" not in body:
-        app.logger.warning(f"missing rate in {body}")
+        tcctl_server.logger.warning(f"missing rate in {body}")
         return "missing rate", 400
     if body["NIC"] not in psutil.net_io_counters(pernic=True):
-        app.logger.warning(f"invalid NIC {body['NIC']}")
+        tcctl_server.logger.warning(f"invalid NIC {body['NIC']}")
         return "invalid NIC", 400
     # set netem
     if body["NIC"] not in controllers:
-        controllers[body["NIC"]] = NetemController(body["NIC"], app)
+        controllers[body["NIC"]] = NetemController(body["NIC"], tcctl_server)
         pass
     controllers[body["NIC"]].set(
         float(body["delay"]),
@@ -80,15 +75,15 @@ def put_netem():
     return ""
 
 
-@app.route("/", defaults={"path": ""})
-@app.route("/<path:path>")
+@tcctl_server.route("/", defaults={"path": ""})
+@tcctl_server.route("/<path:path>")
 def serve(path):
-    if path != "" and os.path.exists(app.static_folder + "/" + path):
-        return send_from_directory(app.static_folder, path)
+    if path != "" and os.path.exists(tcctl_server.static_folder + "/" + path):
+        return send_from_directory(tcctl_server.static_folder, path)
     else:
-        return send_from_directory(app.static_folder, "index.html")
+        return send_from_directory(tcctl_server.static_folder, "index.html")
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8080)
+    tcctl_server.run(debug=True, port=8080)
     pass
