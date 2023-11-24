@@ -1,5 +1,5 @@
 
-TARGET_DIR = ./target
+TARGET_DIR = ./build
 
 build:
 	@echo "Building..."
