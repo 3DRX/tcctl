@@ -15,8 +15,8 @@ class NetemController(object):
         # TODO
         parsed: List[str] = result.split("\n").pop()
         if len(parsed) == 0:
-            return False
-        return True
+            return True
+        return False
 
     def set(self, delay: float, loss: float, bandwidth: float):
         # if any of the 3 values is below 0, unset netem
@@ -25,14 +25,10 @@ class NetemController(object):
             return
         operation = "add" if self.__first else "change"
         self.__first = False
-        result = os.popen(
-            f"tc qdisc {operation} dev {self.NIC} root netem delay {delay}ms loss {loss}% rate {bandwidth}mbit"
-        ).read()
-        if self.__success(result):
-            self.__app.logger.info(
-                f"set delay {delay}ms loss {loss}% rate {bandwidth}mbit"
-            )
-        else:
+        cmd = f"tc qdisc {operation} dev {self.NIC} root netem delay {delay}ms loss {loss}% rate {bandwidth}mbit"
+        self.__app.logger.info(cmd)
+        result = os.popen(cmd).read()
+        if not self.__success(result):
             self.__app.logger.error(
                 f"failed to set delay {delay}ms loss {loss}% rate {bandwidth}mbit"
             )
@@ -40,10 +36,10 @@ class NetemController(object):
         pass
 
     def unset(self):
-        result = os.popen(f"tc qdisc del dev {self.NIC} root").read()
-        if self.__success(result):
-            self.__app.logger.info(f"unset netem limit of {self.NIC}")
-        else:
+        cmd = f"tc qdisc del dev {self.NIC} root"
+        self.__app.logger.info(cmd)
+        result = os.popen(cmd).read()
+        if not self.__success(result):
             self.__app.logger.error(
                 f"failed to unset netem limit of {self.NIC}")
             pass
