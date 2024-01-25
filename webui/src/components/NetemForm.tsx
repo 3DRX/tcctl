@@ -222,6 +222,27 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
     marginTop: "1em",
   };
 
+  const getInitialValues = () => {
+    const form = localStorage.getItem("netem-form");
+    if (form) {
+      return JSON.parse(form);
+    } else {
+      return {
+        delay: {
+          number: 0,
+          unit: "ms",
+        },
+        rate: {
+          number: 20,
+          unit: "Mbps",
+        },
+        loss: {
+          number: 0,
+        },
+      };
+    }
+  };
+
   return (
     <div
       style={{
@@ -235,19 +256,10 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
         name="customized_form_controls"
         layout="inline"
         onFinish={onFinish}
-        initialValues={{
-          delay: {
-            number: 0,
-            unit: "ms",
-          },
-          rate: {
-            number: 1,
-            unit: "Mbps",
-          },
-          loss: {
-            number: 0,
-          },
+        onValuesChange={(_, allValues) => {
+          localStorage.setItem("netem-form", JSON.stringify(allValues));
         }}
+        initialValues={getInitialValues()}
       >
         <Form.Item
           name="delay"
