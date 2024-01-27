@@ -1,4 +1,3 @@
-import axios from "axios";
 import { SERVERPORT } from "./consts";
 
 export type InterfaceData = {
@@ -50,15 +49,44 @@ export function sendTraceLine(line: string, nic: string): boolean {
       return false;
     }
   }
-  axios
-    .put(`http://${window.location.hostname}:${SERVERPORT}/api/v1/netem`, {
-      NIC: nic,
-      delay: lineSplit[0],
-      loss: lineSplit[1],
-      rate: lineSplit[2],
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  putNetem({
+    NIC: nic,
+    delay: lineSplit[0],
+    loss: lineSplit[1],
+    rate: lineSplit[2],
+  }).catch((err) => {
+    console.log(err);
+  });
   return true;
+}
+
+export async function postInterfaces() {
+  const response = await fetch(
+    `http://${window.location.hostname}:${SERVERPORT}/api/v2/interfaces`,
+    {
+      method: "POST",
+    },
+  );
+  return response.json();
+}
+
+export type NetemForm = {
+  NIC: string;
+  delay: number;
+  loss: number;
+  rate: number;
+};
+
+export async function putNetem(data: NetemForm) {
+  const response = await fetch(
+    `http://${window.location.hostname}:${SERVERPORT}/api/v1/netem`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    },
+  );
+  return response.json();
 }

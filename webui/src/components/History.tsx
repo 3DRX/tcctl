@@ -1,13 +1,13 @@
 import { Select, Tabs } from "antd";
 import type { TabsProps } from "antd";
-import { SERVERPORT } from "../consts.ts";
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import ReactEcharts from "echarts-for-react";
 import {
   InterfaceData,
   parseInterfaceData,
   bytesPerSecondToKbps,
+  postInterfaces,
+  putNetem,
 } from "../utils.ts";
 import NetemForm from "./NetemForm.tsx";
 import TraceForm from "./TraceForm.tsx";
@@ -56,13 +56,10 @@ const History = () => {
   const echart = useRef<any>(null);
 
   useEffect(() => {
-    axios
-      .post(
-        `http://${window.location.hostname}:${SERVERPORT}/api/v2/interfaces`,
-      )
+    postInterfaces()
       .then((res) => {
         let newInterfaces = [];
-        for (const nic in res.data) {
+        for (const nic in res) {
           newInterfaces.push({
             label: nic,
             value: nic,
@@ -88,12 +85,9 @@ const History = () => {
   }, [nic, count]);
 
   const generateChart = () => {
-    axios
-      .post(
-        `http://${window.location.hostname}:${SERVERPORT}/api/v2/interfaces`,
-      )
+    postInterfaces()
       .then((res) => {
-        const data: InterfaceData | null = parseInterfaceData(res.data[nic]);
+        const data: InterfaceData | null = parseInterfaceData(res[nic]);
         let newDataqueue: InterfaceData[] = [];
         if (data === null) {
           console.log("warning: data is invalid");
@@ -149,16 +143,14 @@ const History = () => {
     if (nic === "") {
       return;
     }
-    axios
-      .put(`http://${window.location.hostname}:${SERVERPORT}/api/v1/netem`, {
-        NIC: nic,
-        delay: -1,
-        loss: -1,
-        rate: -1,
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    putNetem({
+      NIC: nic,
+      delay: -1,
+      loss: -1,
+      rate: -1,
+    }).catch((err) => {
+      console.log(err);
+    });
   };
 
   return (

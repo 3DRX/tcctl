@@ -8,15 +8,9 @@ fi
 mkdir ./build
 
 # copy all backend files to ./build
-echo "copying all backend files to ./build"
-cp ./install.sh ./build
-cp ./LICENSE ./build
-cp ./server.py ./build
-cp ./tcctl.py ./build
-cp ./tcctl ./build
-cp ./README.md ./build
-cp ./start-tcctl.sh ./build
-cp ./stop-tcctl.sh ./build
+echo "building backend"
+cd ./server && go build -o ../build/tcctl
+cd ..
 
 # build frontend
 echo "building frontend"

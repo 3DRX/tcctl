@@ -1,7 +1,6 @@
 import { Button, Form, Input, Select } from "antd";
-import axios from "axios";
 import React, { useState } from "react";
-import { SERVERPORT } from "../consts";
+import { putNetem } from "../utils";
 
 const { Option } = Select;
 
@@ -167,22 +166,20 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
   const onFinish = (values: any) => {
     if (nic === "") return;
     console.log("Received values from form: ", values);
-    axios
-      .put(`http://${window.location.hostname}:${SERVERPORT}/api/v1/netem`, {
-        NIC: nic,
-        delay:
-          values.delay.unit === "ms"
-            ? values.delay.number
-            : values.delay.number * 1000,
-        loss: values.loss.number,
-        rate:
-          values.rate.unit === "Mbps"
-            ? values.rate.number
-            : values.rate.number / 1000,
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    putNetem({
+      NIC: nic,
+      delay:
+        values.delay.unit === "ms"
+          ? values.delay.number
+          : values.delay.number * 1000,
+      loss: values.loss.number,
+      rate:
+        values.rate.unit === "Mbps"
+          ? values.rate.number
+          : values.rate.number / 1000,
+    }).catch((err) => {
+      console.log(err);
+    });
   };
 
   const checkGe0 = (_: any, value: { number: number }) => {
@@ -206,16 +203,14 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
 
   const onReset = () => {
     if (nic === "") return;
-    axios
-      .put(`http://${window.location.hostname}:${SERVERPORT}/api/v1/netem`, {
-        NIC: nic,
-        delay: -1,
-        loss: -1,
-        rate: -1,
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    putNetem({
+      NIC: nic,
+      delay: -1,
+      loss: -1,
+      rate: -1,
+    }).catch((err) => {
+      console.log(err);
+    });
   };
 
   const formItemStyle: React.CSSProperties = {
