@@ -58,7 +58,7 @@ const History = () => {
   useEffect(() => {
     axios
       .post(
-        `http://${window.location.hostname}:${SERVERPORT}/api/v1/interfaces`,
+        `http://${window.location.hostname}:${SERVERPORT}/api/v2/interfaces`,
       )
       .then((res) => {
         let newInterfaces = [];
@@ -90,7 +90,7 @@ const History = () => {
   const generateChart = () => {
     axios
       .post(
-        `http://${window.location.hostname}:${SERVERPORT}/api/v1/interfaces`,
+        `http://${window.location.hostname}:${SERVERPORT}/api/v2/interfaces`,
       )
       .then((res) => {
         const data: InterfaceData | null = parseInterfaceData(res.data[nic]);
