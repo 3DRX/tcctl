@@ -10,7 +10,7 @@ import (
 func main() {
 	r := gin.Default()
 
-    r.Static("/", "./dist")
+	r.Static("/", "./dist")
 
 	r.POST("/api/v2/interfaces", func(c *gin.Context) {
 		counters, err := net.IOCounters(true)
@@ -20,6 +20,8 @@ func main() {
 		}
 		if err != nil {
 			log.Fatal(err)
+			c.JSON(500, err)
+			return
 		}
 		c.JSON(200, retVal)
 	})
