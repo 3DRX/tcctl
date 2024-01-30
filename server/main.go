@@ -6,12 +6,18 @@ import (
 	// "os"
 
 	// "github.com/florianl/go-tc"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/shirou/gopsutil/v3/net"
 )
 
 func main() {
 	r := gin.Default()
+
+	// dev only
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:5173"}
+	r.Use(cors.New(config))
 
 	r.Static("/", "./dist")
 
