@@ -9,7 +9,7 @@ mkdir ./build
 
 # copy all backend files to ./build
 echo "building backend"
-cd ./server && go build -o ../build/tcctl
+cd ./server && go build -o ../build/tcctl -ldflags="-s -w"
 cd ..
 
 # build frontend
