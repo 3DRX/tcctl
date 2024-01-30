@@ -3,21 +3,30 @@ package main
 import (
 	"fmt"
 	"log"
-	// "os"
+	"os"
 
-	// "github.com/florianl/go-tc"
+	"github.com/3DRX/tcctl/server/netem"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/shirou/gopsutil/v3/net"
 )
 
 func main() {
-	r := gin.Default()
-
-	// dev only
+	args := os.Args[1:]
+	fmt.Println(args)
+	isProd := false
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:5173"}
-	r.Use(cors.New(config))
+	if len(args) != 0 && args[0] == "prod" {
+		gin.SetMode(gin.ReleaseMode)
+		isProd = true
+	} else {
+		fmt.Println("Running in dev mode, use 'tcctl prod' to run in release mode")
+		config.AllowOrigins = []string{"http://localhost:5173"}
+	}
+	r := gin.Default()
+	if !isProd {
+		r.Use(cors.New(config))
+	}
 
 	r.Static("/", "./dist")
 
@@ -35,36 +44,18 @@ func main() {
 		c.JSON(200, retVal)
 	})
 
-	type NetemForm struct {
-		NIC   string `form:"NIC" binding:"required"`
-		Delay int    `form:"delay" binding:"required"`
-		Loss  int    `form:"loss" binding:"required"`
-		Rate  int    `form:"rate" binding:"required"`
-	}
-
 	r.PUT("/api/v2/netem", func(c *gin.Context) {
-		var form NetemForm
+		var form netem.NetemForm
 		if err := c.Bind(&form); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
-		fmt.Println(form)
-		// TODO: implement netem
-		// rtnl, err := tc.Open(&tc.Config{})
-		// if err != nil {
-		// 	c.JSON(500, err)
-		// 	return
-		// }
-		// defer func() {
-		// 	if err := rtnl.Close(); err != nil {
-		// 		c.JSON(500, err)
-		// 	}
-		// }()
-		// qdiscs, err := rtnl.Qdisc().Get()
-		// if err != nil {
-		// 	c.JSON(500, err)
-		// 	return
-		// }
+		executor := netem.GetExecutor()
+		err := executor.ExecuteNetem(form)
+		if err != nil {
+			c.JSON(500, err)
+			return
+		}
 		c.Status(200)
 	})
 
