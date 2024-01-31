@@ -1,6 +1,7 @@
 import { Button, Form, notification, Input, Select } from "antd";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { putNetem } from "../utils";
+import { useHotkeys } from "react-hotkeys-hook";
 
 const { Option } = Select;
 
@@ -164,6 +165,17 @@ export interface NetemFormProps {
 
 const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
   const [api, contextHolder] = notification.useNotification();
+  const formRef = useRef(null);
+  useHotkeys(
+    "ctrl+return",
+    () => {
+      if (formRef.current) {
+        // @ts-ignore
+        formRef.current.submit();
+      }
+    },
+    [],
+  );
 
   function checkNICSelected() {
     if (nic === "") {
@@ -178,7 +190,7 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
       return false;
     }
     return true;
-  };
+  }
 
   const onFinish = (values: any) => {
     if (checkNICSelected()) {
@@ -281,6 +293,7 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
           localStorage.setItem("netem-form", JSON.stringify(allValues));
         }}
         initialValues={getInitialValues()}
+        ref={formRef}
       >
         <Form.Item
           name="delay"
