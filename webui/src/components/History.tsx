@@ -58,7 +58,12 @@ const History: React.FC<HistoryProps> = (props) => {
   const [count, setcount] = useState<number>(0);
   const [dataqueue, setdataqueue] = useState<InterfaceData[]>([]);
   const [option, setoption] = useState(defaultOption);
+  const [tab, settab] = useState<string>(localStorage.getItem("tab") || "1");
   const echart = useRef<any>(null);
+
+  useEffect(() => {
+    localStorage.setItem("tab", tab);
+  }, [tab]);
 
   useEffect(() => {
     postInterfaces()
@@ -144,7 +149,8 @@ const History: React.FC<HistoryProps> = (props) => {
     },
   ];
 
-  const onTabChange = (_: string) => {
+  const onTabChange = (key: string) => {
+    settab(key);
     if (nic === "") {
       return;
     }
@@ -172,7 +178,7 @@ const History: React.FC<HistoryProps> = (props) => {
           defaultValue="Select a NIC"
           style={{
             width: 140,
-            marginTop: "1em",
+            marginTop: "0.5em",
             marginBottom: "0.5em",
           }}
           onChange={(value: string) => {
@@ -204,7 +210,7 @@ const History: React.FC<HistoryProps> = (props) => {
         }}
       />
       <div style={{ width: "80vw", marginLeft: "auto", marginRight: "auto" }}>
-        <Tabs defaultActiveKey="1" items={tabItems} onChange={onTabChange} />
+        <Tabs defaultActiveKey={tab} items={tabItems} onChange={onTabChange} />
       </div>
     </div>
   );

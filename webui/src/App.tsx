@@ -14,6 +14,12 @@ function App() {
     );
   }, [dark]);
 
+  function genIcon(ico: string) {
+    return (
+      <div style={{ marginLeft: "-0.2ex", marginTop: "0.2ex" }}>{ico}</div>
+    );
+  }
+
   return (
     <div
       style={{
@@ -30,7 +36,7 @@ function App() {
           onClick={(_) => {
             setdark(!dark);
           }}
-          icon={dark ? "☀️" : "🌙"}
+          icon={genIcon(dark ? "☀️" : "🌙")}
         />
       </ConfigProvider>
     </div>

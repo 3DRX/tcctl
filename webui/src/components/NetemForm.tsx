@@ -165,29 +165,45 @@ export interface NetemFormProps {
 const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
   const [api, contextHolder] = notification.useNotification();
 
-  const onFinish = (values: any) => {
-    if (nic === "") return;
-    putNetem({
-      NIC: nic,
-      DelayMs:
-        values.delay.unit === "ms"
-          ? values.delay.number
-          : values.delay.number * 1000,
-      LossPercent: values.loss.number,
-      RateKbps:
-        values.rate.unit === "Mbps"
-          ? values.rate.number
-          : values.rate.number / 1000,
-    }).catch((err: Error) => {
+  function checkNICSelected() {
+    if (nic === "") {
       api.error({
         message: "Error",
-        description: `${err.message}`,
+        description: "Please select a NIC first",
         placement: "topRight",
         style: {
           height: 85,
         },
       });
-    });
+      return false;
+    }
+    return true;
+  };
+
+  const onFinish = (values: any) => {
+    if (checkNICSelected()) {
+      putNetem({
+        NIC: nic,
+        DelayMs:
+          values.delay.unit === "ms"
+            ? values.delay.number
+            : values.delay.number * 1000,
+        LossPercent: values.loss.number,
+        RateKbps:
+          values.rate.unit === "Mbps"
+            ? values.rate.number
+            : values.rate.number / 1000,
+      }).catch((err: Error) => {
+        api.error({
+          message: "Error",
+          description: `${err.message}`,
+          placement: "topRight",
+          style: {
+            height: 85,
+          },
+        });
+      });
+    }
   };
 
   const checkGe0 = (_: any, value: { number: number }) => {
@@ -210,15 +226,16 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
   };
 
   const onReset = () => {
-    if (nic === "") return;
-    putNetem({
-      NIC: nic,
-      DelayMs: -1,
-      LossPercent: -1,
-      RateKbps: -1,
-    }).catch((err) => {
-      console.log(err);
-    });
+    if (checkNICSelected()) {
+      putNetem({
+        NIC: nic,
+        DelayMs: -1,
+        LossPercent: -1,
+        RateKbps: -1,
+      }).catch((err) => {
+        console.log(err);
+      });
+    }
   };
 
   const formItemStyle: React.CSSProperties = {
