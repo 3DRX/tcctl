@@ -1,4 +1,4 @@
-import { Button, Form, Input, Select } from "antd";
+import { Button, Form, notification, Input, Select } from "antd";
 import React, { useState } from "react";
 import { putNetem } from "../utils";
 
@@ -163,22 +163,27 @@ export interface NetemFormProps {
 }
 
 const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
+  const [api, contextHolder] = notification.useNotification();
+
   const onFinish = (values: any) => {
     if (nic === "") return;
-    console.log("Received values from form: ", values);
     putNetem({
       NIC: nic,
-      delay:
+      DelayMs:
         values.delay.unit === "ms"
           ? values.delay.number
           : values.delay.number * 1000,
-      loss: values.loss.number,
-      rate:
+      LossPercent: values.loss.number,
+      RateKbps:
         values.rate.unit === "Mbps"
           ? values.rate.number
           : values.rate.number / 1000,
-    }).catch((err) => {
-      console.log(err);
+    }).catch((err: Error) => {
+      api.error({
+        message: "Error",
+        description: `${err.message}`,
+        placement: "topRight",
+      });
     });
   };
 
@@ -205,9 +210,9 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
     if (nic === "") return;
     putNetem({
       NIC: nic,
-      delay: -1,
-      loss: -1,
-      rate: -1,
+      DelayMs: -1,
+      LossPercent: -1,
+      RateKbps: -1,
     }).catch((err) => {
       console.log(err);
     });
@@ -247,6 +252,7 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
         alignItems: "center",
       }}
     >
+      {contextHolder}
       <Form
         name="customized_form_controls"
         layout="inline"

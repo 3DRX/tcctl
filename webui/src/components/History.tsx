@@ -145,9 +145,9 @@ const History = () => {
     }
     putNetem({
       NIC: nic,
-      delay: -1,
-      loss: -1,
-      rate: -1,
+      DelayMs: -1,
+      LossPercent: -1,
+      RateKbps: -1,
     }).catch((err) => {
       console.log(err);
     });

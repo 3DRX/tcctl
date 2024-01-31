@@ -9,9 +9,9 @@ import (
 )
 
 type NetemForm struct {
-	NIC         string  `binding:"required"`
-	DelayMs     float64 `binding:"required"`
-	LossPercent float64 `binding:"required"`
+	NIC         string `binding:"required"`
+	DelayMs     float64
+	LossPercent float64
 	RateKbps    float64 `binding:"required"`
 }
 

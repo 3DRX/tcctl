@@ -51,9 +51,9 @@ export function sendTraceLine(line: string, nic: string): boolean {
   }
   putNetem({
     NIC: nic,
-    delay: lineSplit[0],
-    loss: lineSplit[1],
-    rate: lineSplit[2],
+    DelayMs: lineSplit[0],
+    LossPercent: lineSplit[1],
+    RateKbps: lineSplit[2],
   }).catch((err) => {
     console.log(err);
   });
@@ -72,14 +72,14 @@ export async function postInterfaces() {
 
 export type NetemForm = {
   NIC: string;
-  delay: number;
-  loss: number;
-  rate: number;
+  DelayMs: number;
+  LossPercent: number;
+  RateKbps: number;
 };
 
 export async function putNetem(data: NetemForm) {
   const response = await fetch(
-    `http://${window.location.hostname}:${SERVERPORT}/api/v1/netem`,
+    `http://${window.location.hostname}:${SERVERPORT}/api/v2/netem`,
     {
       method: "PUT",
       headers: {
@@ -88,5 +88,8 @@ export async function putNetem(data: NetemForm) {
       body: JSON.stringify(data),
     },
   );
-  return response.json();
+  if (!response.ok) {
+    throw new Error("set netem failed");
+  }
+  return response?.json();
 }
