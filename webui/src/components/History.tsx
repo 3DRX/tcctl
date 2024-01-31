@@ -11,6 +11,7 @@ import {
 } from "../utils.ts";
 import NetemForm from "./NetemForm.tsx";
 import TraceForm from "./TraceForm.tsx";
+import Description from "./Description.tsx";
 
 type option = {
   label: string;
@@ -47,7 +48,11 @@ const defaultOption: any = {
   ],
 };
 
-const History = () => {
+export type HistoryProps = {
+  dark: boolean;
+};
+
+const History: React.FC<HistoryProps> = (props) => {
   const [interfaces, setinterfaces] = useState<option[]>([]);
   const [nic, setnic] = useState<string>("");
   const [count, setcount] = useState<number>(0);
@@ -155,26 +160,39 @@ const History = () => {
 
   return (
     <div style={{ alignItems: "center" }}>
-      <Select
-        defaultValue="Select a NIC"
-        style={{ width: 140, marginTop: "1em", marginBottom: "0.5em" }}
-        onChange={(value: string) => {
-          if (echart && echart.current) {
-            echart.current.getEchartsInstance().clear();
-            const newOption = option;
-            newOption.xAxis.data = [];
-            newOption.series[0].data = [];
-            newOption.series[1].data = [];
-            echart.current.getEchartsInstance().setOption(newOption);
-            setoption(newOption);
-          }
-          setoption(defaultOption);
-          setdataqueue([]);
-          setnic(value);
-          setcount(0);
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
-        options={interfaces}
-      />
+      >
+        <Description dark={props.dark} />
+        <Select
+          defaultValue="Select a NIC"
+          style={{
+            width: 140,
+            marginTop: "1em",
+            marginBottom: "0.5em",
+          }}
+          onChange={(value: string) => {
+            if (echart && echart.current) {
+              echart.current.getEchartsInstance().clear();
+              const newOption = option;
+              newOption.xAxis.data = [];
+              newOption.series[0].data = [];
+              newOption.series[1].data = [];
+              echart.current.getEchartsInstance().setOption(newOption);
+              setoption(newOption);
+            }
+            setoption(defaultOption);
+            setdataqueue([]);
+            setnic(value);
+            setcount(0);
+          }}
+          options={interfaces}
+        />
+      </div>
       <ReactEcharts
         option={defaultOption}
         ref={echart}

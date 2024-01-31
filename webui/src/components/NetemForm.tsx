@@ -183,6 +183,9 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
         message: "Error",
         description: `${err.message}`,
         placement: "topRight",
+        style: {
+          height: 85,
+        },
       });
     });
   };

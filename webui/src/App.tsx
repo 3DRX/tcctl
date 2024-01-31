@@ -25,7 +25,7 @@ function App() {
           algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         }}
       >
-        <History />
+        <History dark={dark} />
         <FloatButton
           onClick={(_) => {
             setdark(!dark);
