@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/3DRX/tcctl/server/netem"
 	"github.com/gin-contrib/cors"
@@ -13,7 +15,6 @@ import (
 
 func main() {
 	args := os.Args[1:]
-	fmt.Println(args)
 	isProd := false
 	config := cors.DefaultConfig()
 	if len(args) != 0 && args[0] == "prod" {
@@ -50,14 +51,36 @@ func main() {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
-		executor := netem.GetExecutor()
-		err := executor.ExecuteNetem(form)
+		controller := netem.GetController()
+		err := controller.ExecuteNetem(form)
 		if err != nil {
-			c.JSON(500, err)
+			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 		c.Status(200)
 	})
 
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		cleanup()
+		os.Exit(1)
+	}()
+
 	r.Run(":8080")
+}
+
+func cleanup() {
+	controller := netem.GetController()
+	if controller == nil {
+		return
+	}
+	err := controller.UnsetAllNetem()
+	if err != nil {
+		log.Fatal(
+			err.Error(),
+			", please consider reboot or manually unset all tc qdisc rules",
+		)
+	}
 }
