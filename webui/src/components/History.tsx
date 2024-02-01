@@ -1,4 +1,4 @@
-import { Select, Tabs } from "antd";
+import { Select, Tabs, notification } from "antd";
 import type { TabsProps } from "antd";
 import { useEffect, useRef, useState } from "react";
 import ReactEcharts from "echarts-for-react";
@@ -59,6 +59,7 @@ const History: React.FC<HistoryProps> = (props) => {
   const [dataqueue, setdataqueue] = useState<InterfaceData[]>([]);
   const [option, setoption] = useState(defaultOption);
   const [tab, settab] = useState<string>(localStorage.getItem("tab") || "1");
+  const [api, contextHolder] = notification.useNotification();
   const echart = useRef<any>(null);
 
   useEffect(() => {
@@ -140,12 +141,12 @@ const History: React.FC<HistoryProps> = (props) => {
     {
       key: "1",
       label: "Manual",
-      children: <NetemForm nic={nic} />,
+      children: <NetemForm nic={nic} api={api} />,
     },
     {
       key: "2",
       label: "Trace",
-      children: <TraceForm nic={nic} />,
+      children: <TraceForm nic={nic} api={api} />,
     },
   ];
 
@@ -159,8 +160,15 @@ const History: React.FC<HistoryProps> = (props) => {
       DelayMs: -1,
       LossPercent: -1,
       RateKbps: -1,
-    }).catch((err) => {
-      console.log(err);
+    }).catch((err: Error) => {
+      api.error({
+        message: "Error",
+        description: `${err.message}`,
+        placement: "topRight",
+        style: {
+          height: 85,
+        },
+      });
     });
   };
 
@@ -209,6 +217,7 @@ const History: React.FC<HistoryProps> = (props) => {
           marginBottom: "-3em",
         }}
       />
+      {contextHolder}
       <div style={{ width: "80vw", marginLeft: "auto", marginRight: "auto" }}>
         <Tabs defaultActiveKey={tab} items={tabItems} onChange={onTabChange} />
       </div>

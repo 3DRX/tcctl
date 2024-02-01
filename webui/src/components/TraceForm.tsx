@@ -3,12 +3,14 @@ import type { UploadFile, UploadProps } from "antd";
 import { Button, Upload, List, message } from "antd";
 import { useEffect, useState } from "react";
 import { isTracefileValid, sendTraceLine } from "../utils";
+import { NotificationInstance } from "antd/es/notification/interface";
 
 export interface TraceFormProps {
   nic: string;
+  api: NotificationInstance;
 }
 
-const TraceForm: React.FC<TraceFormProps> = ({ nic }) => {
+const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [data, setdata] = useState<string[]>([]);
   const [currentData, setcurrentData] = useState<string[]>([]);
@@ -44,10 +46,7 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic }) => {
           ...currentData,
           `delay ${datSplit[0]}ms, loss ${datSplit[1]}%, rate ${datSplit[2]}Mbps`,
         ]);
-        const flag = sendTraceLine(dat, nic);
-        if (!flag) {
-          console.log(`Error: send ${dat} to ${nic}`);
-        }
+        sendTraceLine(dat, nic, api);
         if (data.length === 0) {
           // stop interval
           setstartTrace(false);

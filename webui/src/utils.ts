@@ -1,3 +1,4 @@
+import { NotificationInstance } from "antd/es/notification/interface";
 import { SERVERPORT } from "./consts";
 
 export type InterfaceData = {
@@ -38,15 +39,27 @@ export function isTracefileValid(input: string): boolean {
   return true;
 }
 
-export function sendTraceLine(line: string, nic: string): boolean {
+export function sendTraceLine(
+  line: string,
+  nic: string,
+  api: NotificationInstance,
+) {
   const lineSplit: any[] = line.split(" ");
   lineSplit.forEach((n) => Number(n));
   if (lineSplit.length !== 3) {
-    return false;
+    api.error({
+      message: "Invalid trace line",
+      description: "Each line must contain 3 numbers",
+    });
+    return;
   }
   for (const num of lineSplit) {
     if (isNaN(num) || num < 0) {
-      return false;
+      api.error({
+        message: "Invalid trace line",
+        description: "Each number must be a positive number",
+      });
+      return;
     }
   }
   putNetem({
@@ -55,7 +68,10 @@ export function sendTraceLine(line: string, nic: string): boolean {
     LossPercent: lineSplit[1],
     RateKbps: lineSplit[2],
   }).catch((err) => {
-    console.log(err);
+    api.error({
+      message: "Failed to set netem",
+      description: err.toString(),
+    });
   });
   return true;
 }

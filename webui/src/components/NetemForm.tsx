@@ -1,7 +1,8 @@
-import { Button, Form, notification, Input, Select } from "antd";
+import { Button, Form, Input, Select } from "antd";
 import React, { useRef, useState } from "react";
 import { putNetem } from "../utils";
 import { useHotkeys } from "react-hotkeys-hook";
+import { NotificationInstance } from "antd/es/notification/interface";
 
 const { Option } = Select;
 
@@ -161,10 +162,10 @@ const LossInput: React.FC<LossInputProps> = ({ value = {}, onChange }) => {
 
 export interface NetemFormProps {
   nic: string;
+  api: NotificationInstance;
 }
 
-const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
-  const [api, contextHolder] = notification.useNotification();
+const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
   const formRef = useRef(null);
   useHotkeys(
     "ctrl+return",
@@ -284,7 +285,6 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic }) => {
         alignItems: "center",
       }}
     >
-      {contextHolder}
       <Form
         name="customized_form_controls"
         layout="inline"
