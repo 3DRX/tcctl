@@ -203,9 +203,9 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
             : values.delay.number * 1000,
         LossPercent: values.loss.number,
         RateKbps:
-          values.rate.unit === "Mbps"
+          values.rate.unit === "Kbps"
             ? values.rate.number
-            : values.rate.number / 1000,
+            : values.rate.number * 1024,
       }).catch((err: Error) => {
         api.error({
           message: "Error",

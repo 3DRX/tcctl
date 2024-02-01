@@ -66,7 +66,7 @@ export function sendTraceLine(
     NIC: nic,
     DelayMs: lineSplit[0],
     LossPercent: lineSplit[1],
-    RateKbps: lineSplit[2],
+    RateKbps: lineSplit[2] * 1024,
   }).catch((err) => {
     api.error({
       message: "Failed to set netem",
