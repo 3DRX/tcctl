@@ -20,12 +20,14 @@ function Description(props: DescriptionProps) {
           fontFamily: "monospace",
         }}
       >
-        made with <HeartTwoTone twoToneColor="#eb2f96" /> by{" "}
+        made with{" "}
+        <HeartTwoTone twoToneColor={props.dark ? "#65A8F9" : "#eb2f96"} /> by{" "}
         <a
           href="https://github.com/3DRX"
           target="_blank"
           style={{
             fontWeight: "bold",
+            color: props.dark ? "#65A8F9" : "#eb2f96",
           }}
         >
           3DRX
