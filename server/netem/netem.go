@@ -105,11 +105,9 @@ func (n *NetemForm) validate() error {
 }
 
 type Executor struct {
-	nic         string
-	delayMs     float64
-	lossPercent float64
-	rateKbps    float64
-	first       bool
+	nic      string
+	lastForm *NetemForm
+	first    bool
 }
 
 type Controller struct {
@@ -138,7 +136,7 @@ func (c *Controller) UnsetAllNetem() error {
 	return nil
 }
 
-func (c *Controller) ExecuteNetem(form NetemForm) error {
+func (c *Controller) ExecuteNetem(form *NetemForm) error {
 	// debug
 	fmt.Printf("form: %+v\n", form)
 	err := form.validate()
@@ -146,33 +144,36 @@ func (c *Controller) ExecuteNetem(form NetemForm) error {
 		return err
 	}
 	if executor, ok := c.NICExecutorMap[form.NIC]; ok {
-		err := executor.executeNetem(form.DelayMs, form.LossRandomPercent, form.RateKbps)
+		err := executor.executeNetem(form)
 		if err != nil {
 			return err
 		}
+		executor.lastForm = form
 	} else {
 		executor := &Executor{
-			nic:         form.NIC,
-			delayMs:     form.DelayMs,
-			lossPercent: form.LossRandomPercent,
-			rateKbps:    form.RateKbps,
-			first:       true,
+			nic:   form.NIC,
+			first: true,
 		}
 		runtime.SetFinalizer(executor, func(executor *Executor) {
 			executor.unsetNetem()
 		})
 		c.NICExecutorMap[form.NIC] = executor
 		log.Println("create new executor", form.NIC)
-		err := executor.executeNetem(form.DelayMs, form.LossRandomPercent, form.RateKbps)
+		initErr := executor.unsetNetem()
+		if initErr != nil {
+			log.Println("clear netem error:", initErr)
+		}
+		err := executor.executeNetem(form)
 		if err != nil {
 			return err
 		}
+		executor.lastForm = form
 	}
 	return nil
 }
 
-func (e *Executor) executeNetem(DelayMs float64, LossPercent float64, RateKbps float64) error {
-	if DelayMs < 0 || LossPercent < 0 || RateKbps < 0 {
+func (e *Executor) executeNetem(f *NetemForm) error {
+	if f.DelayMs < 0 || f.LossRandomPercent < 0 || f.RateKbps < 0 {
 		err := e.unsetNetem()
 		if err != nil {
 			return err
@@ -184,7 +185,7 @@ func (e *Executor) executeNetem(DelayMs float64, LossPercent float64, RateKbps f
 		operation = "add"
 		e.first = false
 	}
-	cmd := exec.Command(
+	cmdArr := []string{
 		"tc",
 		"qdisc",
 		operation,
@@ -193,12 +194,60 @@ func (e *Executor) executeNetem(DelayMs float64, LossPercent float64, RateKbps f
 		"root",
 		"netem",
 		"delay",
-		fmt.Sprintf("%fms", DelayMs),
-		"loss",
-		fmt.Sprintf("%f%%", LossPercent),
-		"rate",
-		fmt.Sprintf("%fkbit", RateKbps),
-	)
+		fmt.Sprintf("%fms", f.DelayMs),
+		fmt.Sprintf("%fms", f.DelayJitterMs),
+		fmt.Sprintf("%f%%", f.DelayCorrelationPercent),
+	}
+	if f.DelayDistribution != "" {
+		cmdArr = append(cmdArr, "distribution", f.DelayDistribution)
+	}
+	cmdArr = append(cmdArr, "loss")
+	if f.lossRandomSet() {
+		cmdArr = append(
+			cmdArr,
+			"random",
+			fmt.Sprintf("%f%%", f.LossRandomPercent),
+			fmt.Sprintf("%f%%", f.LossRandomCorrelationPercent),
+		)
+	} else if f.lossStateSet() {
+		cmdArr = append(
+			cmdArr,
+			"state",
+			fmt.Sprintf("%f%%", f.LossStateP13),
+			fmt.Sprintf("%f%%", f.LossStateP31),
+			fmt.Sprintf("%f%%", f.LossStateP32),
+			fmt.Sprintf("%f%%", f.LossStateP23),
+			fmt.Sprintf("%f%%", f.LossStateP14),
+		)
+	} else if f.lossGEModelSet() {
+		cmdArr = append(
+			cmdArr,
+			"gemodel",
+			fmt.Sprintf("%f%%", f.LossGEModelPercent),
+			fmt.Sprintf("%f", f.LossGEModelR),
+			fmt.Sprintf("%f", f.LossGEModel1H),
+			fmt.Sprintf("%f", f.LossGEModel1K),
+		)
+	} else {
+		cmdArr = append(cmdArr, "0%")
+	}
+	if f.LossECN {
+		cmdArr = append(cmdArr, "ecn")
+	}
+	cmdArr = append(cmdArr, "corrupt", fmt.Sprintf("%f%%", f.CorruptPercent), fmt.Sprintf("%f%%", f.CorruptCorrelationPercent))
+	cmdArr = append(cmdArr, "duplicate", fmt.Sprintf("%f%%", f.DuplicatePercent), fmt.Sprintf("%f%%", f.DuplicateCorrelationPercent))
+	cmdArr = append(cmdArr, "reorder", fmt.Sprintf("%f%%", f.ReorderPercent), fmt.Sprintf("%f%%", f.ReorderCorrelationPercent), "gap", fmt.Sprintf("%d", int64(f.ReorderGapDistance)))
+	cmdArr = append(cmdArr, "rate", fmt.Sprintf("%fkbit", f.RateKbps))
+	if f.slotDistributionSet() || f.slotMinMaxDelaySet() {
+		cmdArr = append(cmdArr, "slot")
+		if f.slotMinMaxDelaySet() {
+			cmdArr = append(cmdArr, fmt.Sprintf("%fms", f.SlotMinDelayMs), fmt.Sprintf("%fms", f.SlotMaxDelayMs))
+		} else if f.slotDistributionSet() {
+			cmdArr = append(cmdArr, "distribution", f.SlotDistribution, fmt.Sprintf("%fms", f.SlotDelayJitterMs))
+		}
+		cmdArr = append(cmdArr, "packets", fmt.Sprintf("%d", f.SlotPackets), "bytes", fmt.Sprintf("%d", f.SlotBytes))
+	}
+	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
 	log.Println("setNetem>", strings.Join(cmd.Args, " "))
 	err := cmd.Run()
 	if err != nil {
@@ -222,12 +271,10 @@ func (e *Executor) unsetNetem() error {
 	log.Println("unsetNetem>", strings.Join(cmd.Args, " "))
 	err := cmd.Run()
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	out, err := cmd.Output()
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	outStr := string(out)

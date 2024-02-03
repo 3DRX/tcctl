@@ -52,7 +52,7 @@ func main() {
 			return
 		}
 		controller := netem.GetController()
-		err := controller.ExecuteNetem(form)
+		err := controller.ExecuteNetem(&form)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
