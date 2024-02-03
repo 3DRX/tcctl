@@ -3,6 +3,7 @@ import React, { useRef, useState } from "react";
 import { putNetem } from "../utils";
 import { useHotkeys } from "react-hotkeys-hook";
 import { NotificationInstance } from "antd/es/notification/interface";
+import { LossInput } from "./LossInput";
 
 const { Option } = Select;
 
@@ -19,7 +20,29 @@ interface DelayValue {
   unit?: Delay;
 }
 
-interface LossValue {
+export enum LossPattern {
+  Random = "random",
+  State = "state",
+  Gemodel = "gemodel",
+}
+
+export interface LossValue {
+  randomPercent?: number;
+  randomCorrelation?: number;
+  stateP13?: number;
+  stateP31?: number;
+  stateP32?: number;
+  stateP23?: number;
+  stateP14?: number;
+  gemodelP?: number;
+  gemodelR?: number;
+  gemodel1H?: number;
+  gemodel1K?: number;
+  ecn?: boolean;
+  pattern?: LossPattern;
+}
+
+interface PercentageValue {
   number?: number;
 }
 
@@ -28,14 +51,19 @@ interface RateInputProps {
   onChange?: (value: RateValue) => void;
 }
 
-interface DelayInputProps {
+interface MsInputProps {
   value?: DelayValue;
   onChange?: (value: DelayValue) => void;
 }
 
-interface LossInputProps {
+export interface LossInputProps {
   value?: LossValue;
   onChange?: (value: LossValue) => void;
+}
+
+interface PercentageInputProps {
+  value?: PercentageValue;
+  onChange?: (value: PercentageValue) => void;
 }
 
 const RateInput: React.FC<RateInputProps> = ({ value = {}, onChange }) => {
@@ -84,7 +112,7 @@ const RateInput: React.FC<RateInputProps> = ({ value = {}, onChange }) => {
   );
 };
 
-const DelayInput: React.FC<DelayInputProps> = ({ value = {}, onChange }) => {
+const MsInput: React.FC<MsInputProps> = ({ value = {}, onChange }) => {
   const [number, setNumber] = useState<number>(0);
   const [unit, setUnit] = useState<Delay>("ms");
 
@@ -116,11 +144,11 @@ const DelayInput: React.FC<DelayInputProps> = ({ value = {}, onChange }) => {
         type="text"
         value={value.number || number}
         onChange={onNumberChange}
-        style={{ width: 100 }}
+        style={{ width: 70 }}
       />
       <Select
         value={value.unit || unit}
-        style={{ width: 80, margin: "0 8px" }}
+        style={{ width: 61, margin: "0 8px" }}
         onChange={onUnitChange}
       >
         <Option value="ms">ms</Option>
@@ -130,7 +158,10 @@ const DelayInput: React.FC<DelayInputProps> = ({ value = {}, onChange }) => {
   );
 };
 
-const LossInput: React.FC<LossInputProps> = ({ value = {}, onChange }) => {
+const PercentageInput: React.FC<PercentageInputProps> = ({
+  value = {},
+  onChange,
+}) => {
   const [number, setNumber] = useState<number>(0);
 
   const triggerChange = (changedValue: RateValue) => {
@@ -154,7 +185,7 @@ const LossInput: React.FC<LossInputProps> = ({ value = {}, onChange }) => {
         type="text"
         value={value.number || number}
         onChange={onNumberChange}
-        style={{ width: 100 }}
+        style={{ width: 50 }}
       />
     </span>
   );
@@ -196,13 +227,27 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
   const onFinish = (values: any) => {
     if (checkNICSelected()) {
       putNetem({
-        NIC: nic,
-        DelayMs:
+        nic: nic,
+        delayMs:
           values.delay.unit === "ms"
             ? values.delay.number
             : values.delay.number * 1000,
-        LossPercent: values.loss.number,
-        RateKbps:
+        lossRandomPercent: values.loss.randomPercent,
+        lossRandomCorrelationPercent: values.loss.randomCorrelation,
+        lossStateP13: values.loss.stateP13,
+        lossStateP31: values.loss.stateP31,
+        lossStateP32: values.loss.stateP32,
+        lossStateP23: values.loss.stateP23,
+        lossStateP14: values.loss.stateP14,
+        lossGEModelPercent: values.loss.gemodelP,
+        lossGEModelR: values.loss.gemodelR,
+        lossGEModel1H: values.loss.gemodel1H,
+        lossGEModel1K: values.loss.gemodel1K,
+        lossECN: values.loss.ecn,
+        corruptPercent: values.corrupt.number,
+        duplicatePercent: values.duplicate.number,
+        reorderPercent: values.reorder.number,
+        rateKbps:
           values.rate.unit === "Kbps"
             ? values.rate.number
             : values.rate.number * 1024,
@@ -219,11 +264,60 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
     }
   };
 
+  const checkLoss = (_: any, value: LossValue) => {
+    // if any of the values are not 0 <= x <= 100, reject
+    if (
+      value.pattern === LossPattern.Random &&
+      (value.randomPercent! < 0 ||
+        value.randomPercent! > 100 ||
+        value.randomCorrelation! < 0 ||
+        value.randomCorrelation! > 100)
+    ) {
+      return Promise.reject(new Error("must be >= 0 and <= 100"));
+    }
+    if (
+      value.pattern === LossPattern.State &&
+      (value.stateP13! < 0 ||
+        value.stateP13! > 100 ||
+        value.stateP31! < 0 ||
+        value.stateP31! > 100 ||
+        value.stateP32! < 0 ||
+        value.stateP32! > 100 ||
+        value.stateP23! < 0 ||
+        value.stateP23! > 100 ||
+        value.stateP14! < 0 ||
+        value.stateP14! > 100)
+    ) {
+      return Promise.reject(new Error("must be >= 0 and <= 100"));
+    }
+    if (
+      value.pattern === LossPattern.Gemodel &&
+      (value.gemodelP! < 0 ||
+        value.gemodelP! > 100 ||
+        value.gemodelR! < 0 ||
+        value.gemodelR! > 100 ||
+        value.gemodel1H! < 0 ||
+        value.gemodel1H! > 100 ||
+        value.gemodel1K! < 0 ||
+        value.gemodel1K! > 100)
+    ) {
+      return Promise.reject(new Error("must be >= 0 and <= 100"));
+    }
+    return Promise.resolve();
+  };
+
+  const checkPercentage = (_: any, value: { number: number }) => {
+    if (value.number >= 0 && value.number <= 100) {
+      return Promise.resolve();
+    }
+    return Promise.reject(new Error("must be >= 0 and <= 100"));
+  };
+
   const checkGe0 = (_: any, value: { number: number }) => {
     if (value.number >= 0) {
       return Promise.resolve();
     }
-    return Promise.reject(new Error("Price must be greater than zero!"));
+    return Promise.reject(new Error("must be >= 0"));
   };
 
   const checkRate = (_: any, value: RateValue) => {
@@ -241,10 +335,12 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
   const onReset = () => {
     if (checkNICSelected()) {
       putNetem({
-        NIC: nic,
-        DelayMs: -1,
-        LossPercent: -1,
-        RateKbps: -1,
+        nic: nic,
+        delayMs: -1,
+        corruptPercent: -1,
+        duplicatePercent: -1,
+        reorderPercent: -1,
+        rateKbps: -1,
       }).catch((err) => {
         console.log(err);
       });
@@ -265,12 +361,33 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
           number: 0,
           unit: "ms",
         },
+        loss: {
+          pattern: LossPattern.Random,
+          randomPercent: 0,
+          randomCorrelation: 0,
+          stateP13: 0,
+          stateP31: 0,
+          stateP32: 0,
+          stateP23: 0,
+          stateP14: 0,
+          gemodelP: 0,
+          gemodelR: 0,
+          gemodel1H: 0,
+          gemodel1K: 0,
+          ecn: false,
+        },
+        corrupt: {
+          number: 0,
+        },
+        duplicate: {
+          number: 0,
+        },
+        reorder: {
+          number: 0,
+        },
         rate: {
           number: 20,
           unit: "Mbps",
-        },
-        loss: {
-          number: 0,
         },
       };
     }
@@ -283,6 +400,7 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
+        paddingBottom: "1em",
       }}
     >
       <Form
@@ -301,15 +419,31 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
           rules={[{ validator: checkGe0 }]}
           style={formItemStyle}
         >
-          <DelayInput />
+          <MsInput />
         </Form.Item>
         <Form.Item
-          name="loss"
-          label="Loss (%)"
-          rules={[{ validator: checkGe0 }]}
+          name="corrupt"
+          label="Corrupt (%)"
+          rules={[{ validator: checkPercentage }]}
           style={formItemStyle}
         >
-          <LossInput />
+          <PercentageInput />
+        </Form.Item>
+        <Form.Item
+          name="duplicate"
+          label="Duplicate (%)"
+          rules={[{ validator: checkPercentage }]}
+          style={formItemStyle}
+        >
+          <PercentageInput />
+        </Form.Item>
+        <Form.Item
+          name="reorder"
+          label="Reorder (%)"
+          rules={[{ validator: checkPercentage }]}
+          style={formItemStyle}
+        >
+          <PercentageInput />
         </Form.Item>
         <Form.Item
           name="rate"
@@ -318,6 +452,14 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
           style={formItemStyle}
         >
           <RateInput />
+        </Form.Item>
+        <Form.Item
+          name="loss"
+          label="Loss"
+          rules={[{ validator: checkLoss }]}
+          style={formItemStyle}
+        >
+          <LossInput />
         </Form.Item>
         <Form.Item style={formItemStyle}>
           <Button type="primary" htmlType="submit">

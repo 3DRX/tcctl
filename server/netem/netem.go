@@ -12,40 +12,41 @@ import (
 type NetemForm struct {
 	// detailed props description:
 	// https://man7.org/linux/man-pages/man8/tc-netem.8.html
-	NIC                         string  `json:"nic"`
-	DelayMs                     float64 `json:"delayMs"`
-	DelayJitterMs               float64 `json:"delayJitterMs"`
-	DelayCorrelationPercent     float64 `json:"delayCorrelationPercent"`
-	DelayDistribution           string  `json:"delayDistribution"`
-	LossRandomPercent           float64 `json:"lossRandomPercent"`
-	LossStateP13                float64 `json:"lossStateP13"`
-	LossStateP31                float64 `json:"lossStateP31"`
-	LossStateP32                float64 `json:"lossStateP32"`
-	LossStateP23                float64 `json:"lossStateP23"`
-	LossStateP14                float64 `json:"lossStateP14"`
-	LossGEModelPercent          float64 `json:"lossGEModelPercent"`
-	LossGEModelR                float64 `json:"lossGEModelR"`
-	LossGEModel1H               float64 `json:"lossGEModel1H"`
-	LossGEModel1K               float64 `json:"lossGEModel1K"`
-	LossECN                     bool    `json:"lossECN"`
-	CorruptPercent              float64 `json:"corruptPercent"`
-	CorruptCorrelationPercent   float64 `json:"corruptCorrelationPercent"`
-	DuplicatePercent            float64 `json:"duplicatePercent"`
-	DuplicateCorrelationPercent float64 `json:"duplicateCorrelationPercent"`
-	ReorderPercent              float64 `json:"reorderPercent"`
-	ReorderCorrelationPercent   float64 `json:"reorderCorrelationPercent"`
-	ReorderGapDistance          float64 `json:"reorderGapDistance"`
-	RateKbps                    float64 `json:"rateKbps"`
-	SlotMinDelayMs              float64 `json:"slotMinDelayMs"`
-	SlotMaxDelayMs              float64 `json:"slotMaxDelayMs"`
-	SlotDistribution            string  `json:"slotDistribution"`
-	SlotDelayJitterMs           float64 `json:"slotDelayJitterMs"`
-	SlotPackets                 int64   `json:"slotPackets"`
-	SlotBytes                   int64   `json:"slotBytes"`
+	NIC                          string  `json:"nic"`
+	DelayMs                      float64 `json:"delayMs"`
+	DelayJitterMs                float64 `json:"delayJitterMs"`
+	DelayCorrelationPercent      float64 `json:"delayCorrelationPercent"`
+	DelayDistribution            string  `json:"delayDistribution"`
+	LossRandomPercent            float64 `json:"lossRandomPercent"`
+	LossRandomCorrelationPercent float64 `json:"lossRandomCorrelationPercent"`
+	LossStateP13                 float64 `json:"lossStateP13"`
+	LossStateP31                 float64 `json:"lossStateP31"`
+	LossStateP32                 float64 `json:"lossStateP32"`
+	LossStateP23                 float64 `json:"lossStateP23"`
+	LossStateP14                 float64 `json:"lossStateP14"`
+	LossGEModelPercent           float64 `json:"lossGEModelPercent"`
+	LossGEModelR                 float64 `json:"lossGEModelR"`
+	LossGEModel1H                float64 `json:"lossGEModel1H"`
+	LossGEModel1K                float64 `json:"lossGEModel1K"`
+	LossECN                      bool    `json:"lossECN"`
+	CorruptPercent               float64 `json:"corruptPercent"`
+	CorruptCorrelationPercent    float64 `json:"corruptCorrelationPercent"`
+	DuplicatePercent             float64 `json:"duplicatePercent"`
+	DuplicateCorrelationPercent  float64 `json:"duplicateCorrelationPercent"`
+	ReorderPercent               float64 `json:"reorderPercent"`
+	ReorderCorrelationPercent    float64 `json:"reorderCorrelationPercent"`
+	ReorderGapDistance           float64 `json:"reorderGapDistance"`
+	RateKbps                     float64 `json:"rateKbps"`
+	SlotMinDelayMs               float64 `json:"slotMinDelayMs"`
+	SlotMaxDelayMs               float64 `json:"slotMaxDelayMs"`
+	SlotDistribution             string  `json:"slotDistribution"`
+	SlotDelayJitterMs            float64 `json:"slotDelayJitterMs"`
+	SlotPackets                  int64   `json:"slotPackets"`
+	SlotBytes                    int64   `json:"slotBytes"`
 }
 
 func (n *NetemForm) lossRandomSet() bool {
-	return n.LossRandomPercent != 0
+	return n.LossRandomPercent != 0 || n.LossRandomCorrelationPercent != 0
 }
 
 func (n *NetemForm) lossStateSet() bool {

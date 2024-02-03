@@ -44,8 +44,7 @@ export function sendTraceLine(
   nic: string,
   api: NotificationInstance,
 ) {
-  const lineSplit: any[] = line.split(" ");
-  lineSplit.forEach((n) => Number(n));
+  const lineSplit: number[] = line.split(" ").map((n) => Number(n));
   if (lineSplit.length !== 3) {
     api.error({
       message: "Invalid trace line",
@@ -63,10 +62,13 @@ export function sendTraceLine(
     }
   }
   putNetem({
-    NIC: nic,
-    DelayMs: lineSplit[0],
-    LossPercent: lineSplit[1],
-    RateKbps: lineSplit[2] * 1024,
+    nic: nic,
+    delayMs: lineSplit[0],
+    lossRandomPercent: lineSplit[1],
+    rateKbps: lineSplit[2] * 1024,
+    corruptPercent: 0,
+    duplicatePercent: 0,
+    reorderPercent: 0,
   }).catch((err) => {
     api.error({
       message: "Failed to set netem",
@@ -86,11 +88,45 @@ export async function postInterfaces() {
   return response.json();
 }
 
+enum NetemDistribution {
+  uniform = "uniform",
+  normal = "normal",
+  pareto = "pareto",
+  paretonormal = "paretonormal",
+}
+
 export type NetemForm = {
-  NIC: string;
-  DelayMs: number;
-  LossPercent: number;
-  RateKbps: number;
+  nic: string;
+  delayMs: number;
+  delayJitterMs?: number;
+  delayCorrelationPecent?: number;
+  delayDistribution?: NetemDistribution;
+  lossRandomPercent?: number;
+  lossRandomCorrelationPercent?: number;
+  lossStateP13?: number;
+  lossStateP31?: number;
+  lossStateP32?: number;
+  lossStateP23?: number;
+  lossStateP14?: number;
+  lossGEModelPercent?: number;
+  lossGEModelR?: number;
+  lossGEModel1H?: number;
+  lossGEModel1K?: number;
+  lossECN?: boolean;
+  corruptPercent: number;
+  corruptCorrelationPecent?: number;
+  duplicatePercent: number;
+  duplicateCorrelationPecent?: number;
+  reorderPercent: number;
+  reorderCorrelationPecent?: number;
+  reorderGapDistance?: number;
+  rateKbps: number;
+  slotMinDelayMs?: number;
+  slotMaxDelayMs?: number;
+  slotDistribution?: NetemDistribution;
+  slotDelayJitterMs?: number;
+  slotPackets?: number;
+  slotBytes?: number;
 };
 
 export async function putNetem(data: NetemForm) {

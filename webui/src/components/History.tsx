@@ -156,10 +156,10 @@ const History: React.FC<HistoryProps> = (props) => {
       return;
     }
     putNetem({
-      NIC: nic,
-      DelayMs: -1,
-      LossPercent: -1,
-      RateKbps: -1,
+      nic: nic,
+      delayMs: -1,
+      lossRandomPercent: -1,
+      rateKbps: -1,
     }).catch((err: Error) => {
       api.error({
         message: "Error",
