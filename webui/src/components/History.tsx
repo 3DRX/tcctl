@@ -160,6 +160,9 @@ const History: React.FC<HistoryProps> = (props) => {
       delayMs: -1,
       lossRandomPercent: -1,
       rateKbps: -1,
+      corruptPercent: -1,
+      duplicatePercent: -1,
+      reorderPercent: -1,
     }).catch((err: Error) => {
       api.error({
         message: "Error",
