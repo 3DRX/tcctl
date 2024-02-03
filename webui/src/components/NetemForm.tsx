@@ -396,9 +396,9 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "center",
+        // display: "flex",
+        // flexDirection: "row",
+        // justifyContent: "center",
         alignItems: "center",
         paddingBottom: "1em",
       }}
@@ -461,15 +461,33 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
         >
           <LossInput />
         </Form.Item>
-        <Form.Item style={formItemStyle}>
-          <Button type="primary" htmlType="submit">
-            Submit
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <Form.Item style={formItemStyle}>
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </Form.Item>
+          <Button type="default" onClick={onReset} style={formItemStyle}>
+            Reset
           </Button>
-        </Form.Item>
-        <Button type="default" onClick={onReset} style={formItemStyle}>
-          Reset
-        </Button>
+        </div>
       </Form>
+      <p>
+        Visit{" "}
+        <a
+          href="https://man7.org/linux/man-pages/man8/tc-netem.8.html"
+          target="_blank"
+        >
+          tc-netem manual
+        </a>{" "}
+        for more about the parameters.
+      </p>
     </div>
   );
 };

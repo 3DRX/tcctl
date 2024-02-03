@@ -9,21 +9,39 @@ export const LossInput: React.FC<LossInputProps> = ({
   onChange,
 }) => {
   const [pattern, setpattern] = useState(value.pattern || LossPattern.Random);
-  const [randomPercent, setrandomPercent] = useState(0);
-  const [randomCorrelation, setrandomCorrelation] = useState(0);
-  const [stateP13, setstateP13] = useState(0);
-  const [stateP31, setstateP31] = useState(0);
-  const [stateP32, setstateP32] = useState(0);
-  const [stateP23, setstateP23] = useState(0);
-  const [stateP14, setstateP14] = useState(0);
-  const [gemodelP, setgemodelP] = useState(0);
-  const [gemodelR, setgemodelR] = useState(0);
-  const [gemodel1H, setgemodel1H] = useState(0);
-  const [gemodel1K, setgemodel1K] = useState(0);
+  const [randomPercent, setrandomPercent] = useState(value.randomPercent || 0);
+  const [randomCorrelation, setrandomCorrelation] = useState(
+    value.randomCorrelation || 0,
+  );
+  const [stateP13, setstateP13] = useState(value.stateP13 || 0);
+  const [stateP31, setstateP31] = useState(value.stateP31 || 0);
+  const [stateP32, setstateP32] = useState(value.stateP32 || 0);
+  const [stateP23, setstateP23] = useState(value.stateP23 || 0);
+  const [stateP14, setstateP14] = useState(value.stateP14 || 0);
+  const [gemodelP, setgemodelP] = useState(value.gemodelP || 0);
+  const [gemodelR, setgemodelR] = useState(value.gemodelR || 0);
+  const [gemodel1H, setgemodel1H] = useState(value.gemodel1H || 0);
+  const [gemodel1K, setgemodel1K] = useState(value.gemodel1K || 0);
   const [ecn, setecn] = useState(false);
 
   const triggerChange = (changedValue: LossValue) => {
-    onChange?.({ pattern, ...value, ...changedValue });
+    onChange?.({
+      pattern,
+      randomPercent,
+      randomCorrelation,
+      stateP13,
+      stateP31,
+      stateP32,
+      stateP23,
+      stateP14,
+      gemodelP,
+      gemodelR,
+      gemodel1H,
+      gemodel1K,
+      ecn,
+      ...value,
+      ...changedValue,
+    });
   };
 
   const renderLossInput = () => {
@@ -225,10 +243,9 @@ export const LossInput: React.FC<LossInputProps> = ({
 
   return (
     <span>
-      {renderLossInput()}
       <Select
         value={value.pattern || pattern}
-        style={{ width: 125, margin: "0 8px" }}
+        style={{ width: 135, margin: "0 8px" }}
         onChange={(newPattern) => {
           setpattern(newPattern);
           switch (newPattern) {
@@ -294,13 +311,13 @@ export const LossInput: React.FC<LossInputProps> = ({
             default:
               break;
           }
-          triggerChange({ pattern: newPattern });
         }}
       >
         <Option value="random">random</Option>
         <Option value="state">4 state Markov</Option>
         <Option value="gemodel">Gilbert Elliot</Option>
       </Select>
+      {renderLossInput()}
       <>ecn</>
       <Switch
         defaultChecked={value.ecn || ecn}
