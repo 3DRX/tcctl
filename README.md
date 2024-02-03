@@ -11,7 +11,10 @@
 - [x] Apply network shaping rules manually & automatically by trace file
     - [x] Control delay, packet loss rate, bandwidth
     - [x] Run as deamon
-    - [ ] Configure packet loss distribution
+    - [x] Configure packet loss distribution
+    - [x] Control corrupt, duplicate, reorder rate
+    - [ ] More percise delay control
+    - [ ] Slot control
     - [ ] Filter by IP and port
 - [ ] Record current network condition to a trace file
 
