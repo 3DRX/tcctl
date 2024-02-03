@@ -12,36 +12,95 @@ import (
 type NetemForm struct {
 	// detailed props description:
 	// https://man7.org/linux/man-pages/man8/tc-netem.8.html
-	NIC                         string `binding:"required"`
-	DelayMs                     float64
-	DelayJitterMs               float64
-	DelayCorrelationPercent     float64
-	DelayDistribution           string // uniform(default), normal, pareto, paretonormal
-	LossRandomPercent           float64
-	LossStateP13                float64
-	LossStateP31                float64
-	LossStateP32                float64
-	LossStateP23                float64
-	LossStateP14                float64
-	LossGEModelPercent          float64
-	LossGEModelR                float64
-	LossGEModel1H               float64
-	LossGEModel1K               float64
-	LossECN                     bool
-	CorruptPercent              float64
-	CorruptCorrelationPercent   float64
-	DuplicatePercent            float64
-	DuplicateCorrelationPercent float64
-	ReorderPercent              float64
-	ReorderCorrelationPercent   float64
-	ReorderGapDistance          float64
-	RateKbps                    float64 `binding:"required"`
-	SlotMinDelayMs              float64
-	SlotMaxDelayMs              float64
-	SlotDistribution            string // uniform(default), normal, pareto, paretonormal
-	SlotDelayJitterMs           float64
-	SlotPackets                 int64
-	SlotBytes                   int64
+	NIC                         string  `json:"nic"`
+	DelayMs                     float64 `json:"delayMs"`
+	DelayJitterMs               float64 `json:"delayJitterMs"`
+	DelayCorrelationPercent     float64 `json:"delayCorrelationPercent"`
+	DelayDistribution           string  `json:"delayDistribution"`
+	LossRandomPercent           float64 `json:"lossRandomPercent"`
+	LossStateP13                float64 `json:"lossStateP13"`
+	LossStateP31                float64 `json:"lossStateP31"`
+	LossStateP32                float64 `json:"lossStateP32"`
+	LossStateP23                float64 `json:"lossStateP23"`
+	LossStateP14                float64 `json:"lossStateP14"`
+	LossGEModelPercent          float64 `json:"lossGEModelPercent"`
+	LossGEModelR                float64 `json:"lossGEModelR"`
+	LossGEModel1H               float64 `json:"lossGEModel1H"`
+	LossGEModel1K               float64 `json:"lossGEModel1K"`
+	LossECN                     bool    `json:"lossECN"`
+	CorruptPercent              float64 `json:"corruptPercent"`
+	CorruptCorrelationPercent   float64 `json:"corruptCorrelationPercent"`
+	DuplicatePercent            float64 `json:"duplicatePercent"`
+	DuplicateCorrelationPercent float64 `json:"duplicateCorrelationPercent"`
+	ReorderPercent              float64 `json:"reorderPercent"`
+	ReorderCorrelationPercent   float64 `json:"reorderCorrelationPercent"`
+	ReorderGapDistance          float64 `json:"reorderGapDistance"`
+	RateKbps                    float64 `json:"rateKbps"`
+	SlotMinDelayMs              float64 `json:"slotMinDelayMs"`
+	SlotMaxDelayMs              float64 `json:"slotMaxDelayMs"`
+	SlotDistribution            string  `json:"slotDistribution"`
+	SlotDelayJitterMs           float64 `json:"slotDelayJitterMs"`
+	SlotPackets                 int64   `json:"slotPackets"`
+	SlotBytes                   int64   `json:"slotBytes"`
+}
+
+func (n *NetemForm) lossRandomSet() bool {
+	return n.LossRandomPercent != 0
+}
+
+func (n *NetemForm) lossStateSet() bool {
+	return n.LossStateP13 != 0 || n.LossStateP31 != 0 || n.LossStateP32 != 0 || n.LossStateP23 != 0 || n.LossStateP14 != 0
+}
+
+func (n *NetemForm) lossGEModelSet() bool {
+	return n.LossGEModelPercent != 0 || n.LossGEModelR != 0 || n.LossGEModel1H != 0 || n.LossGEModel1K != 0
+}
+
+func (n *NetemForm) slotMinMaxDelaySet() bool {
+	return n.SlotMinDelayMs != 0 || n.SlotMaxDelayMs != 0
+}
+
+func (n *NetemForm) slotDistributionSet() bool {
+	return n.SlotDistribution != ""
+}
+
+func (n *NetemForm) validate() error {
+	if n.NIC == "" {
+		return fmt.Errorf("NIC is required")
+	}
+	if n.DelayDistribution != "uniform" && n.DelayDistribution != "normal" && n.DelayDistribution != "pareto" && n.DelayDistribution != "paretonormal" && n.DelayDistribution != "" {
+		return fmt.Errorf("DelayDistribution must be one of uniform, normal, pareto, paretonormal")
+	}
+	// loss pattern can only be one of ["random", "state", "gemodel"]
+	if n.lossRandomSet() {
+		if n.lossStateSet() {
+			return fmt.Errorf("random loss and state loss cannot be set at the same time")
+		}
+		if n.lossGEModelSet() {
+			return fmt.Errorf("random loss and gemodel loss cannot be set at the same time")
+		}
+	} else if n.lossStateSet() {
+		if n.lossRandomSet() {
+			return fmt.Errorf("random loss and state loss cannot be set at the same time")
+		}
+		if n.lossGEModelSet() {
+			return fmt.Errorf("state loss and gemodel loss cannot be set at the same time")
+		}
+	} else if n.lossGEModelSet() {
+		if n.lossRandomSet() {
+			return fmt.Errorf("random loss and gemodel loss cannot be set at the same time")
+		}
+		if n.lossStateSet() {
+			return fmt.Errorf("state loss and gemodel loss cannot be set at the same time")
+		}
+	}
+	if n.SlotDistribution != "uniform" && n.SlotDistribution != "normal" && n.SlotDistribution != "pareto" && n.SlotDistribution != "paretonormal" && n.SlotDistribution != "" {
+		return fmt.Errorf("SlotDistribution must be one of uniform, normal, pareto, paretonormal")
+	}
+	if n.slotMinMaxDelaySet() && !n.slotDistributionSet() {
+		return fmt.Errorf("SlotDistribution must be set if SlotMinDelayMs or SlotMaxDelayMs is set")
+	}
+	return nil
 }
 
 type Executor struct {
@@ -79,6 +138,12 @@ func (c *Controller) UnsetAllNetem() error {
 }
 
 func (c *Controller) ExecuteNetem(form NetemForm) error {
+	// debug
+	fmt.Printf("form: %+v\n", form)
+	err := form.validate()
+	if err != nil {
+		return err
+	}
 	if executor, ok := c.NICExecutorMap[form.NIC]; ok {
 		err := executor.executeNetem(form.DelayMs, form.LossRandomPercent, form.RateKbps)
 		if err != nil {
