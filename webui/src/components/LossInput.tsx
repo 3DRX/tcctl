@@ -8,7 +8,7 @@ export const LossInput: React.FC<LossInputProps> = ({
   value = {},
   onChange,
 }) => {
-  const [pattern, setpattern] = useState(value.pattern || LossPattern.Random);
+  const [pattern, setpattern] = useState(LossPattern.Random);
   const [randomPercent, setrandomPercent] = useState(0);
   const [randomCorrelation, setrandomCorrelation] = useState(0);
   const [stateP13, setstateP13] = useState(0);

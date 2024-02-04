@@ -378,8 +378,9 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
   };
 
   const onReset = () => {
-    form.setFieldsValue(defalutValues);
-    onValuesChange(null, defalutValues);
+    form.resetFields(); // rerender form, avoid state mismatch
+    form.setFieldsValue(defalutValues); // set value to defalutValues (resetFields only set it to values in localStorage)
+    onValuesChange(null, defalutValues); // update localStorage
     if (checkNICSelected()) {
       putNetem({
         nic: nic,
