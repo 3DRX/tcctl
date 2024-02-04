@@ -1,5 +1,5 @@
 #!/bin/bash
-PIDS=$(pgrep -f "gunicorn server:tcctl_server")
+PIDS=$(pgrep -f "tcctl prod")
 if [ -z "$PIDS" ]; then
     echo "tcctl is not currently running."
 else
