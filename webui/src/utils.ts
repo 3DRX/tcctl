@@ -141,7 +141,8 @@ export async function putNetem(data: NetemForm) {
     },
   );
   if (!response.ok) {
-    throw new Error("set netem failed");
+    const body = (await response.text()).replace(/"/g, "").replace(/\\n/g, "");
+    throw new Error(`${body}`);
   }
   return response?.json();
 }

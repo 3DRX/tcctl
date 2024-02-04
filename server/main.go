@@ -37,7 +37,7 @@ func main() {
 		counters, err := net.IOCounters(true)
 		if err != nil {
 			log.Fatal(err)
-			c.JSON(500, err)
+			c.JSON(500, err.Error())
 			return
 		}
 		retVal := make(map[string][]int64)
@@ -50,13 +50,13 @@ func main() {
 	r.PUT("/api/v2/netem", func(c *gin.Context) {
 		var form netem.NetemForm
 		if err := c.Bind(&form); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
+			c.JSON(400, err.Error())
 			return
 		}
 		controller := netem.GetController()
 		err := controller.ExecuteNetem(&form)
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
+			c.JSON(500, err.Error())
 			return
 		}
 		c.JSON(200, "ok")

@@ -290,9 +290,18 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
           placement: "topRight",
           style: {
             height: 80,
+            width: getNotificationWidth(err.message),
           },
         });
       });
+    }
+  };
+
+  const getNotificationWidth = (message: string) => {
+    if (message.length * 10 > 300) {
+      return message.length * 10;
+    } else {
+      return 300;
     }
   };
 
@@ -379,8 +388,16 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
         duplicatePercent: -1,
         reorderPercent: -1,
         rateKbps: -1,
-      }).catch((err) => {
-        console.log(err);
+      }).catch((err: Error) => {
+        api.error({
+          message: "Error",
+          description: `${err.message}`,
+          placement: "topRight",
+          style: {
+            height: 80,
+            width: getNotificationWidth(err.message),
+          },
+        });
       });
     }
   };
