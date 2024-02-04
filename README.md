@@ -9,6 +9,7 @@
 - [x] Visualize network interface traffic status
 - [x] Dark mode
 - [x] Apply network shaping rules manually & automatically by trace file
+    - [x] Error handling, dispaying tc command error on web ui
     - [x] Control delay, packet loss rate, bandwidth
     - [x] Run as deamon
     - [x] Configure packet loss distribution
