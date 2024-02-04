@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/3DRX/tcctl/server/netem"
@@ -20,6 +21,7 @@ func main() {
 	if len(args) != 0 && args[0] == "prod" {
 		gin.SetMode(gin.ReleaseMode)
 		isProd = true
+		gin.DisableConsoleColor()
 	} else {
 		fmt.Println("Running in dev mode, use 'tcctl prod' to run in release mode")
 		config.AllowOrigins = []string{"http://localhost:5173"}
@@ -57,7 +59,7 @@ func main() {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		c.Status(200)
+		c.JSON(200, "ok")
 	})
 
 	c := make(chan os.Signal)
@@ -77,10 +79,10 @@ func cleanup() {
 		return
 	}
 	err := controller.UnsetAllNetem()
-	if err != nil {
+	if len(err) != 0 {
 		log.Fatal(
-			err.Error(),
-			", please consider reboot or manually unset all tc qdisc rules",
+			strings.Join(err, ", "),
+			". Please consider reboot or manually unset all tc qdisc rules",
 		)
 	}
 }

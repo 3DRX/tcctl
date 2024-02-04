@@ -1,6 +1,7 @@
 package netem
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os/exec"
@@ -126,19 +127,18 @@ func GetController() *Controller {
 	return controller
 }
 
-func (c *Controller) UnsetAllNetem() error {
+func (c *Controller) UnsetAllNetem() []string {
+	ret := make([]string, 0)
 	for _, executor := range c.NICExecutorMap {
 		err := executor.unsetNetem()
 		if err != nil {
-			return err
+			ret = append(ret, err.Error())
 		}
 	}
-	return nil
+	return ret
 }
 
 func (c *Controller) ExecuteNetem(form *NetemForm) error {
-	// debug
-	fmt.Printf("form: %+v\n", form)
 	err := form.validate()
 	if err != nil {
 		return err
@@ -249,37 +249,31 @@ func (e *Executor) executeNetem(f *NetemForm) error {
 	}
 	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
 	log.Println("setNetem>", strings.Join(cmd.Args, " "))
-	err := cmd.Run()
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	out, err := cmd.Output()
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	outStr := string(out)
-	if outStr != "" {
-		log.Println(outStr)
-	}
-	return nil
+	return executeCommand(cmd)
 }
 
 func (e *Executor) unsetNetem() error {
+	if e.first { // no need to unset
+		return nil
+	}
 	cmd := exec.Command("tc", "qdisc", "del", "dev", e.nic, "root")
 	log.Println("unsetNetem>", strings.Join(cmd.Args, " "))
-	err := cmd.Run()
-	if err != nil {
-		return err
+	err := executeCommand(cmd)
+	if err == nil {
+		e.first = true
 	}
-	out, err := cmd.Output()
-	if err != nil {
-		return err
-	}
-	outStr := string(out)
-	if outStr != "" {
-		log.Println(outStr)
+	return err
+}
+
+func executeCommand(cmd *exec.Cmd) error {
+	buf := new(bytes.Buffer)
+	cmd.Stdout = buf
+	cmd.Stderr = buf
+	cmd.Run()
+	str := buf.String()
+	if str != "" {
+		fmt.Println(str)
+		return fmt.Errorf(str)
 	}
 	return nil
 }

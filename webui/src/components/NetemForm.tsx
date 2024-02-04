@@ -1,5 +1,5 @@
 import { Button, Form, Input, Select } from "antd";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { putNetem } from "../utils";
 import { useHotkeys } from "react-hotkeys-hook";
 import { NotificationInstance } from "antd/es/notification/interface";
@@ -65,6 +65,41 @@ interface PercentageInputProps {
   value?: PercentageValue;
   onChange?: (value: PercentageValue) => void;
 }
+
+const defalutValues = {
+  delay: {
+    number: 0,
+    unit: "ms",
+  },
+  loss: {
+    pattern: LossPattern.Random,
+    randomPercent: 0,
+    randomCorrelation: 0,
+    stateP13: 0,
+    stateP31: 0,
+    stateP32: 0,
+    stateP23: 0,
+    stateP14: 0,
+    gemodelP: 0,
+    gemodelR: 0,
+    gemodel1H: 0,
+    gemodel1K: 0,
+    ecn: false,
+  },
+  corrupt: {
+    number: 0,
+  },
+  duplicate: {
+    number: 0,
+  },
+  reorder: {
+    number: 0,
+  },
+  rate: {
+    number: 20,
+    unit: "Mbps",
+  },
+};
 
 const RateInput: React.FC<RateInputProps> = ({ value = {}, onChange }) => {
   const [number, setNumber] = useState<number>(0);
@@ -197,14 +232,11 @@ export interface NetemFormProps {
 }
 
 const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
-  const formRef = useRef(null);
+  const [form] = Form.useForm();
   useHotkeys(
     "ctrl+return",
     () => {
-      if (formRef.current) {
-        // @ts-ignore
-        formRef.current.submit();
-      }
+      form.submit();
     },
     [],
   );
@@ -216,7 +248,7 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
         description: "Please select a NIC first",
         placement: "topRight",
         style: {
-          height: 85,
+          height: 80,
         },
       });
       return false;
@@ -257,7 +289,7 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
           description: `${err.message}`,
           placement: "topRight",
           style: {
-            height: 85,
+            height: 80,
           },
         });
       });
@@ -332,7 +364,13 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
     return Promise.reject(new Error("Rate must be greater than 1 Mbps!"));
   };
 
+  const onValuesChange = (_: any, allValues: any) => {
+    localStorage.setItem("netem-form", JSON.stringify(allValues));
+  };
+
   const onReset = () => {
+    form.setFieldsValue(defalutValues);
+    onValuesChange(null, defalutValues);
     if (checkNICSelected()) {
       putNetem({
         nic: nic,
@@ -353,44 +391,7 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
 
   const getInitialValues = () => {
     const form = localStorage.getItem("netem-form");
-    if (form) {
-      return JSON.parse(form);
-    } else {
-      return {
-        delay: {
-          number: 0,
-          unit: "ms",
-        },
-        loss: {
-          pattern: LossPattern.Random,
-          randomPercent: 0,
-          randomCorrelation: 0,
-          stateP13: 0,
-          stateP31: 0,
-          stateP32: 0,
-          stateP23: 0,
-          stateP14: 0,
-          gemodelP: 0,
-          gemodelR: 0,
-          gemodel1H: 0,
-          gemodel1K: 0,
-          ecn: false,
-        },
-        corrupt: {
-          number: 0,
-        },
-        duplicate: {
-          number: 0,
-        },
-        reorder: {
-          number: 0,
-        },
-        rate: {
-          number: 20,
-          unit: "Mbps",
-        },
-      };
-    }
+    return form ? JSON.parse(form) : defalutValues;
   };
 
   return (
@@ -404,11 +405,9 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
         name="customized_form_controls"
         layout="inline"
         onFinish={onFinish}
-        onValuesChange={(_, allValues) => {
-          localStorage.setItem("netem-form", JSON.stringify(allValues));
-        }}
+        onValuesChange={onValuesChange}
         initialValues={getInitialValues()}
-        ref={formRef}
+        form={form}
       >
         <Form.Item
           name="delay"
