@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import History from "./components/History";
 import { ConfigProvider, FloatButton, theme } from "antd";
+import sun from "/sun.png";
+import moon from "/moon.png";
 
 function App() {
   const [dark, setdark] = useState(localStorage.getItem("dark") === "true");
@@ -13,12 +15,6 @@ function App() {
       dark ? "black" : "white",
     );
   }, [dark]);
-
-  function genIcon(ico: string) {
-    return (
-      <div style={{ marginLeft: "-0.2ex", marginTop: "0.2ex" }}>{ico}</div>
-    );
-  }
 
   return (
     <div
@@ -36,7 +32,17 @@ function App() {
           onClick={(_) => {
             setdark(!dark);
           }}
-          icon={genIcon(dark ? "☀️" : "🌙")}
+          icon={
+            <img
+              src={dark ? sun : moon}
+              style={{
+                width: "100%",
+                height: "100%",
+                marginTop: "0.17em",
+                marginLeft: "0.01em",
+              }}
+            />
+          }
         />
       </ConfigProvider>
     </div>

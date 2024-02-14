@@ -37,7 +37,7 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
       return;
     } else {
       const intervalId = setInterval(() => {
-        const dat: any = data.shift();
+        const dat = data.shift()!;
         if (currentData.length === 5) {
           currentData.shift();
         }
