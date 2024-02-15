@@ -4,6 +4,7 @@ import History from "./components/History";
 import { ConfigProvider, FloatButton, theme } from "antd";
 import sun from "/sun.png";
 import moon from "/moon.png";
+import { DarkPrimeCol, LightPrimeCol } from "./consts";
 
 function App() {
   const [dark, setdark] = useState(localStorage.getItem("dark") === "true");
@@ -25,6 +26,10 @@ function App() {
       <ConfigProvider
         theme={{
           algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+          token: {
+            colorPrimary: dark ? DarkPrimeCol : LightPrimeCol,
+            colorLink: dark ? DarkPrimeCol : LightPrimeCol,
+          },
         }}
       >
         <History dark={dark} />

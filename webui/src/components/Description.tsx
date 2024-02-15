@@ -1,4 +1,5 @@
 import { HeartTwoTone } from "@ant-design/icons";
+import { DarkPrimeCol, LightPrimeCol } from "../consts";
 
 export type DescriptionProps = {
   dark: boolean;
@@ -21,13 +22,16 @@ function Description(props: DescriptionProps) {
         }}
       >
         made with{" "}
-        <HeartTwoTone twoToneColor={props.dark ? "#65A8F9" : "#eb2f96"} /> by{" "}
+        <HeartTwoTone
+          twoToneColor={props.dark ? DarkPrimeCol : LightPrimeCol}
+        />{" "}
+        by{" "}
         <a
           href="https://github.com/3DRX"
           target="_blank"
           style={{
             fontWeight: "bold",
-            color: props.dark ? "#65A8F9" : "#eb2f96",
+            color: props.dark ? DarkPrimeCol : LightPrimeCol,
           }}
         >
           3DRX

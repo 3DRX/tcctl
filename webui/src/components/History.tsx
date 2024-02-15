@@ -19,6 +19,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { DarkPrimeCol, LightPrimeCol } from "../consts.ts";
 
 type option = {
   label: string;
@@ -181,7 +182,7 @@ const History: React.FC<HistoryProps> = (props) => {
       <div
         style={{
           height: "60vh",
-          maxHeight: "24em",
+          maxHeight: "22em",
           width: "98vw",
           marginBottom: "-1em",
         }}
@@ -201,16 +202,16 @@ const History: React.FC<HistoryProps> = (props) => {
             <Line
               type="linear"
               dataKey="send"
-              stroke="#8885d8"
-              fill="#8885d8"
+              stroke={props.dark ? DarkPrimeCol : LightPrimeCol}
+              fill={props.dark ? DarkPrimeCol : LightPrimeCol}
               isAnimationActive={false}
-              strokeWidth={5}
+              strokeWidth={3}
             />
             <Line
               type="linear"
               dataKey="recv"
-              stroke="#83ca9d"
-              fill="#83ca9d"
+              stroke={props.dark ? LightPrimeCol : DarkPrimeCol}
+              fill={props.dark ? LightPrimeCol : DarkPrimeCol}
               isAnimationActive={false}
             />
           </LineChart>
