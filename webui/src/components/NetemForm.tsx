@@ -4,6 +4,7 @@ import { putNetem } from "../utils";
 import { useHotkeys } from "react-hotkeys-hook";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { LossInput } from "./LossInput";
+import { getOnFloatNumberChange } from "./FormUtils";
 
 const { Option } = Select;
 
@@ -197,29 +198,19 @@ const PercentageInput: React.FC<PercentageInputProps> = ({
   value = {},
   onChange,
 }) => {
-  const [number, setNumber] = useState<number>(0);
-
-  const triggerChange = (changedValue: RateValue) => {
-    onChange?.({ number, ...value, ...changedValue });
-  };
-
-  const onNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newNumber = parseInt(e.target.value || "0", 10);
-    if (Number.isNaN(number)) {
-      return;
-    }
-    if (!("number" in value)) {
-      setNumber(newNumber);
-    }
-    triggerChange({ number: newNumber });
-  };
+  const [number, setNumber] = useState<string>(value.number?.toString() || "0");
 
   return (
     <span>
       <Input
         type="text"
-        value={value.number || number}
-        onChange={onNumberChange}
+        value={number}
+        onChange={getOnFloatNumberChange(
+          setNumber,
+          (changedValue: RateValue) => {
+            onChange?.({ ...value, ...changedValue });
+          },
+        )}
         style={{ width: 50 }}
       />
     </span>

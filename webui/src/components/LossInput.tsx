@@ -1,6 +1,7 @@
 import { Input, Select, Switch } from "antd";
 import React, { useState } from "react";
 import { LossInputProps, LossPattern, LossValue } from "./NetemForm";
+import { getOnFloatNumberChange } from "./FormUtils";
 
 const { Option } = Select;
 
@@ -9,8 +10,8 @@ export const LossInput: React.FC<LossInputProps> = ({
   onChange,
 }) => {
   const [pattern, setpattern] = useState(LossPattern.Random);
-  const [randomPercent, setrandomPercent] = useState(0);
-  const [randomCorrelation, setrandomCorrelation] = useState(0);
+  const [randomPercent, setrandomPercent] = useState("0");
+  const [randomCorrelation, setrandomCorrelation] = useState("0");
   const [stateP13, setstateP13] = useState(0);
   const [stateP31, setstateP31] = useState(0);
   const [stateP32, setstateP32] = useState(0);
@@ -34,32 +35,24 @@ export const LossInput: React.FC<LossInputProps> = ({
           <Input
             type="text"
             value={value.randomPercent || randomPercent}
-            onChange={(e) => {
-              const newRandomPercent = parseInt(e.target.value || "0", 10);
-              if (Number.isNaN(randomPercent)) {
-                return;
-              }
-              if (!("randomPercent" in value)) {
-                setrandomPercent(newRandomPercent);
-              }
-              triggerChange({ randomPercent: newRandomPercent });
-            }}
+            onChange={getOnFloatNumberChange(
+              setrandomPercent,
+              ({ number: number }) => {
+                triggerChange({ randomPercent: number });
+              },
+            )}
             style={{ width: 50 }}
           />
           <>correlation</>
           <Input
             type="text"
             value={value.randomCorrelation || randomCorrelation}
-            onChange={(e) => {
-              const newRandomCorrelation = parseInt(e.target.value || "0", 10);
-              if (Number.isNaN(randomCorrelation)) {
-                return;
-              }
-              if (!("randomCorrelation" in value)) {
-                setrandomCorrelation(newRandomCorrelation);
-              }
-              triggerChange({ randomCorrelation: newRandomCorrelation });
-            }}
+            onChange={getOnFloatNumberChange(
+              setrandomCorrelation,
+              ({ number: number }) => {
+                triggerChange({ randomCorrelation: number });
+              },
+            )}
             style={{ width: 50 }}
           />
         </>
@@ -255,8 +248,8 @@ export const LossInput: React.FC<LossInputProps> = ({
               });
               break;
             case LossPattern.State:
-              setrandomPercent(0);
-              setrandomCorrelation(0);
+              setrandomPercent("0");
+              setrandomCorrelation("0");
               setgemodelP(0);
               setgemodelR(0);
               setgemodel1H(0);
@@ -272,8 +265,8 @@ export const LossInput: React.FC<LossInputProps> = ({
               });
               break;
             case LossPattern.Gemodel:
-              setrandomPercent(0);
-              setrandomCorrelation(0);
+              setrandomPercent("0");
+              setrandomCorrelation("0");
               setstateP13(0);
               setstateP31(0);
               setstateP32(0);
