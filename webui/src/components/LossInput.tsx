@@ -35,7 +35,7 @@ export const LossInput: React.FC<LossInputProps> = ({
     if (pattern === LossPattern.Random) {
       return (
         <>
-          <>percent</>
+          <>amount (%) </>
           <Input
             type="text"
             value={randomPercent}
@@ -47,7 +47,7 @@ export const LossInput: React.FC<LossInputProps> = ({
             )}
             style={{ width: 50 }}
           />
-          <>correlation</>
+          <> correlation (%) </>
           <Input
             type="text"
             value={randomCorrelation}
@@ -297,7 +297,7 @@ export const LossInput: React.FC<LossInputProps> = ({
         <Option value="gemodel">Gilbert Elliot</Option>
       </Select>
       {renderLossInput()}
-      <>ecn</>
+      <> ecn</>
       <Switch
         defaultChecked={value.ecn || ecn}
         onChange={(checked) => {
