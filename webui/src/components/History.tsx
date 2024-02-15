@@ -1,7 +1,6 @@
 import { Select, Tabs, notification } from "antd";
 import type { TabsProps } from "antd";
-import { useEffect, useRef, useState } from "react";
-import ReactEcharts from "echarts-for-react";
+import { useEffect, useState } from "react";
 import {
   InterfaceData,
   parseInterfaceData,
@@ -12,40 +11,24 @@ import {
 import NetemForm from "./NetemForm.tsx";
 import TraceForm from "./TraceForm.tsx";
 import Description from "./Description.tsx";
+import {
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 type option = {
   label: string;
   value: string;
 };
 
-const defaultOption: any = {
-  legend: {
-    orient: "horizontal",
-    left: "center",
-    data: ["recv", "sent"],
-  },
-  xAxis: {
-    name: "Time(s)",
-    data: [],
-  },
-  yAxis: {
-    type: "value",
-    name: "Kbps",
-  },
-  series: [
-    {
-      data: [],
-      type: "line",
-      stack: "x",
-      name: "recv",
-    },
-    {
-      data: [],
-      type: "line",
-      stack: "x",
-      name: "sent",
-    },
-  ],
+type ChartData = {
+  x: number;
+  send: number;
+  recv: number;
 };
 
 export type HistoryProps = {
@@ -56,11 +39,10 @@ const History: React.FC<HistoryProps> = (props) => {
   const [interfaces, setinterfaces] = useState<option[]>([]);
   const [nic, setnic] = useState<string>("");
   const [count, setcount] = useState<number>(0);
-  const [dataqueue, setdataqueue] = useState<InterfaceData[]>([]);
-  const [option, setoption] = useState(defaultOption);
+  const [lastData, setlastData] = useState<InterfaceData | null>(null);
   const [tab, settab] = useState<string>(localStorage.getItem("tab") || "1");
   const [api, contextHolder] = notification.useNotification();
-  const echart = useRef<any>(null);
+  const [chartData, setchartData] = useState<ChartData[]>([]);
 
   useEffect(() => {
     localStorage.setItem("tab", tab);
@@ -86,56 +68,49 @@ const History: React.FC<HistoryProps> = (props) => {
   useEffect(() => {
     if (nic === "") {
       return;
-    } else {
-      const intervalId = setInterval(() => {
-        generateChart();
-        setcount(count + 1);
-      }, 500);
-      return () => clearInterval(intervalId);
     }
-  }, [nic, count]);
-
-  const generateChart = () => {
-    postInterfaces()
-      .then((res) => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await postInterfaces();
         const data: InterfaceData | null = parseInterfaceData(res[nic]);
-        let newDataqueue: InterfaceData[] = [];
         if (data === null) {
-          console.log("warning: data is invalid");
+          api.error({
+            message: "Error",
+            description: "Data is invalid",
+            placement: "topRight",
+            style: {
+              height: 85,
+            },
+          });
           return;
         }
-        const newOption = option;
-        if (dataqueue.length !== 0) {
-          newOption.xAxis.data.push(count - 1);
-          newOption.series[0].data.push(
-            bytesPerSecondToKbps(
-              data.bytes_recv - dataqueue[dataqueue.length - 1].bytes_recv,
-            ),
-          );
-          newOption.series[1].data.push(
-            bytesPerSecondToKbps(
-              data.bytes_sent - dataqueue[dataqueue.length - 1].bytes_sent,
-            ),
-          );
-          if (newOption.xAxis.data.length > 45) {
-            newOption.xAxis.data.shift();
-            newOption.series[0].data.shift();
-            newOption.series[1].data.shift();
-            newDataqueue = dataqueue.slice(1);
-          } else {
-            newDataqueue = dataqueue;
-          }
+        if (lastData !== null) {
+          setchartData((prevData) => {
+            if (prevData.length > 46) {
+              prevData.shift();
+            }
+            return [
+              ...prevData,
+              {
+                x: count - 1,
+                send: bytesPerSecondToKbps(
+                  data.bytes_sent - lastData.bytes_sent,
+                ),
+                recv: bytesPerSecondToKbps(
+                  data.bytes_recv - lastData.bytes_recv,
+                ),
+              },
+            ];
+          });
         }
-        if (echart && echart.current) {
-          echart.current.getEchartsInstance().setOption(newOption);
-        }
-        setoption(newOption);
-        setdataqueue([...newDataqueue, data]);
-      })
-      .catch((err) => {
+        setlastData((_) => data);
+        setcount((prevCount) => prevCount + 1);
+      } catch (err) {
         console.log(err);
-      });
-  };
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, [nic, count, lastData, chartData]);
 
   const tabItems: TabsProps["items"] = [
     {
@@ -152,6 +127,9 @@ const History: React.FC<HistoryProps> = (props) => {
 
   const onTabChange = (key: string) => {
     settab(key);
+    setchartData((_) => []);
+    setlastData((_) => null);
+    setcount((_) => 0);
     if (nic === "") {
       return;
     }
@@ -193,33 +171,51 @@ const History: React.FC<HistoryProps> = (props) => {
             marginBottom: "0.5em",
           }}
           onChange={(value: string) => {
-            if (echart && echart.current) {
-              echart.current.getEchartsInstance().clear();
-              const newOption = option;
-              newOption.xAxis.data = [];
-              newOption.series[0].data = [];
-              newOption.series[1].data = [];
-              echart.current.getEchartsInstance().setOption(newOption);
-              setoption(newOption);
-            }
-            setoption(defaultOption);
-            setdataqueue([]);
+            setlastData(null);
             setnic(value);
             setcount(0);
           }}
           options={interfaces}
         />
       </div>
-      <ReactEcharts
-        option={defaultOption}
-        ref={echart}
+      <div
         style={{
-          height: "70vh",
-          maxHeight: "30em",
+          height: "60vh",
+          maxHeight: "24em",
           width: "98vw",
-          marginBottom: "-3em",
+          marginBottom: "-1em",
         }}
-      />
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            width={501}
+            height={400}
+            data={chartData}
+            syncMethod="index"
+          >
+            <XAxis dataKey="x" />
+            <YAxis
+              label={{ value: "Kbps", angle: -90, position: "insideLeft" }}
+            />
+            <Legend layout="horizontal" verticalAlign="top" align="right" />
+            <Line
+              type="linear"
+              dataKey="send"
+              stroke="#8885d8"
+              fill="#8885d8"
+              isAnimationActive={false}
+              strokeWidth={5}
+            />
+            <Line
+              type="linear"
+              dataKey="recv"
+              stroke="#83ca9d"
+              fill="#83ca9d"
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
       {contextHolder}
       <div style={{ width: "80vw", marginLeft: "auto", marginRight: "auto" }}>
         <Tabs defaultActiveKey={tab} items={tabItems} onChange={onTabChange} />
