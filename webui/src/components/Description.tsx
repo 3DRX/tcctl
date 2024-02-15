@@ -12,7 +12,7 @@ function Description(props: DescriptionProps) {
       style={{
         ...props.style,
         position: "absolute",
-        left: "1ex",
+        left: "2ex",
       }}
     >
       <h4

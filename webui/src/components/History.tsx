@@ -183,8 +183,10 @@ const History: React.FC<HistoryProps> = (props) => {
         style={{
           height: "60vh",
           maxHeight: "22em",
-          width: "98vw",
+          width: "90vw",
           marginBottom: "-1em",
+          marginLeft: "auto",
+          marginRight: "auto",
         }}
       >
         <ResponsiveContainer width="100%" height="100%">
