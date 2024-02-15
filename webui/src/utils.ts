@@ -99,7 +99,7 @@ export type NetemForm = {
   nic: string;
   delayMs: number;
   delayJitterMs?: number;
-  delayCorrelationPecent?: number;
+  delayCorrelationPercent?: number;
   delayDistribution?: NetemDistribution;
   lossRandomPercent?: number;
   lossRandomCorrelationPercent?: number;

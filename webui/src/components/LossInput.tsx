@@ -10,8 +10,12 @@ export const LossInput: React.FC<LossInputProps> = ({
   onChange,
 }) => {
   const [pattern, setpattern] = useState(LossPattern.Random);
-  const [randomPercent, setrandomPercent] = useState("0");
-  const [randomCorrelation, setrandomCorrelation] = useState("0");
+  const [randomPercent, setrandomPercent] = useState(
+    value.randomPercent?.toString() || "0",
+  );
+  const [randomCorrelation, setrandomCorrelation] = useState(
+    value.randomPercent?.toString() || "0",
+  );
   const [stateP13, setstateP13] = useState(0);
   const [stateP31, setstateP31] = useState(0);
   const [stateP32, setstateP32] = useState(0);
@@ -34,7 +38,7 @@ export const LossInput: React.FC<LossInputProps> = ({
           <>percent</>
           <Input
             type="text"
-            value={value.randomPercent || randomPercent}
+            value={randomPercent}
             onChange={getOnFloatNumberChange(
               setrandomPercent,
               ({ number: number }) => {
@@ -46,7 +50,7 @@ export const LossInput: React.FC<LossInputProps> = ({
           <>correlation</>
           <Input
             type="text"
-            value={value.randomCorrelation || randomCorrelation}
+            value={randomCorrelation}
             onChange={getOnFloatNumberChange(
               setrandomCorrelation,
               ({ number: number }) => {

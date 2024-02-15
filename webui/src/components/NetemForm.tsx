@@ -72,6 +72,13 @@ const defalutValues = {
     number: 0,
     unit: "ms",
   },
+  delayJitter: {
+    number: 0,
+    unit: "ms",
+  },
+  delayCorrelation: {
+    number: 0,
+  },
   loss: {
     pattern: LossPattern.Random,
     randomPercent: 0,
@@ -205,12 +212,9 @@ const PercentageInput: React.FC<PercentageInputProps> = ({
       <Input
         type="text"
         value={number}
-        onChange={getOnFloatNumberChange(
-          setNumber,
-          (changedValue: RateValue) => {
-            onChange?.({ ...value, ...changedValue });
-          },
-        )}
+        onChange={getOnFloatNumberChange(setNumber, ({ number: number }) => {
+          onChange?.({ ...value, number });
+        })}
         style={{ width: 50 }}
       />
     </span>
@@ -255,6 +259,11 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
           values.delay.unit === "ms"
             ? values.delay.number
             : values.delay.number * 1000,
+        delayJitterMs:
+          values.delayJitter.unit === "ms"
+            ? values.delayJitter.number
+            : values.delayJitter.number * 1000,
+        delayCorrelationPercent: values.delayCorrelation.number,
         lossRandomPercent: values.loss.randomPercent,
         lossRandomCorrelationPercent: values.loss.randomCorrelation,
         lossStateP13: values.loss.stateP13,
@@ -440,6 +449,22 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
           style={formItemStyle}
         >
           <MsInput />
+        </Form.Item>
+        <Form.Item
+          name="delayJitter"
+          label="Delay Jitter"
+          rules={[{ validator: checkGe0 }]}
+          style={formItemStyle}
+        >
+          <MsInput />
+        </Form.Item>
+        <Form.Item
+          name="delayCorrelation"
+          label="Delay Correlation (%)"
+          rules={[{ validator: checkPercentage }]}
+          style={formItemStyle}
+        >
+          <PercentageInput />
         </Form.Item>
         <Form.Item
           name="corrupt"
