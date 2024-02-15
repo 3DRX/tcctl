@@ -280,8 +280,9 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
           description: `${err.message}`,
           placement: "topRight",
           style: {
-            height: 80,
+            height: getNotificationHeight(err.message),
             width: getNotificationWidth(err.message),
+            overflow: "scroll",
           },
         });
       });
@@ -289,10 +290,24 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
   };
 
   const getNotificationWidth = (message: string) => {
-    if (message.length * 10 > 300) {
-      return message.length * 10;
+    const width = message.length * 10;
+    if (width > 300) {
+      if (width < 550) {
+        return width;
+      } else {
+        return 550;
+      }
     } else {
       return 300;
+    }
+  };
+
+  const getNotificationHeight = (message: string) => {
+    const width = message.length * 10;
+    if (width <= 550) {
+      return 95;
+    } else {
+      return 150;
     }
   };
 
