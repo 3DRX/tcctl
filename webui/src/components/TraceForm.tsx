@@ -15,22 +15,7 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
   const [data, setdata] = useState<string[]>([]);
   const [currentData, setcurrentData] = useState<string[]>([]);
   const [startTrace, setstartTrace] = useState(false);
-
-  const uploadProps: UploadProps = {
-    onRemove: (file) => {
-      const index = fileList.indexOf(file);
-      const newFileList = fileList.slice();
-      newFileList.splice(index, 1);
-      setFileList(newFileList);
-    },
-    beforeUpload: (file) => {
-      setFileList([...fileList, file]);
-      return false;
-    },
-    fileList,
-    accept: ".txt",
-    disabled: startTrace,
-  };
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     if (!startTrace || data.length === 0) {
@@ -38,9 +23,6 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
     } else {
       const intervalId = setInterval(() => {
         const dat = data.shift()!;
-        if (currentData.length === 5) {
-          currentData.shift();
-        }
         const datSplit: string[] = dat.split(" ");
         setcurrentData([
           ...currentData,
@@ -56,21 +38,22 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
     }
   }, [startTrace, currentData]);
 
-  const onConfirm = () => {
+  const onConfirm = (e: any) => {
+    e.preventDefault();
     if (fileList.length === 1) {
       const file: any = fileList[0];
       if (file.type === "text/plain") {
         const reader = new FileReader();
         reader.onload = (e: any) => {
           if (isTracefileValid(e.target.result)) {
-            message.success(`${file.name} uploaded successfully`);
+            messageApi.success(`${file.name} uploaded successfully`);
             const dat = e.target.result.split("\n");
             dat.pop();
             setdata(dat);
             setcurrentData([]);
             setstartTrace(true);
           } else {
-            message.error(`${file.name} is invalid trace file`);
+            messageApi.error(`${file.name} is invalid trace file`);
             const theFile = fileList[0];
             theFile.status = "error";
             theFile.response = "Invalid trace file";
@@ -91,32 +74,84 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
     }
   };
 
+  const uploadProps: UploadProps = {
+    onRemove: (file) => {
+      const index = fileList.indexOf(file);
+      const newFileList = fileList.slice();
+      newFileList.splice(index, 1);
+      setFileList(newFileList);
+      setcurrentData([]);
+    },
+    beforeUpload: (file) => {
+      setFileList([...fileList, file]);
+      return false;
+    },
+    fileList,
+    accept: ".txt",
+    disabled: startTrace,
+  };
+
   return (
     <div>
-      <Upload {...uploadProps}>
-        <Button
-          icon={<UploadOutlined />}
-          disabled={fileList.length >= 1 || nic === ""}
-          onClick={() => setcurrentData([])}
-        >
-          Select File
-        </Button>
-      </Upload>
-      <Button
-        disabled={fileList.length === 0 || startTrace}
-        loading={startTrace}
-        onClick={onConfirm}
-        style={{ marginTop: "0.5em", marginBottom: "0.5em" }}
+      {contextHolder}
+      <div
+        style={{
+          display: "flex",
+          gap: "1em",
+          marginTop: "-0.5em",
+        }}
       >
-        Start
-      </Button>
-      <List
-        size="small"
-        bordered
-        locale={{ emptyText: "No trace history" }}
-        dataSource={currentData}
-        renderItem={(item) => <List.Item>{item}</List.Item>}
-      />
+        <div style={{ flex: 2 }}>
+          <List
+            size="small"
+            locale={{ emptyText: "No data" }}
+            dataSource={currentData}
+            renderItem={(item) => <List.Item>{item}</List.Item>}
+            style={{
+              marginBottom: "1em",
+              marginTop: "-0.5em",
+              flexDirection: "column-reverse",
+            }}
+            header={<div>Trace History</div>}
+          />
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "1em",
+            width: "100%",
+            maxWidth: "40vw",
+            flex: 1,
+            marginTop: "1em",
+          }}
+        >
+          <Upload {...uploadProps}>
+            <Button
+              icon={<UploadOutlined />}
+              disabled={fileList.length >= 1 || nic === ""}
+              onClick={() => setcurrentData([])}
+            >
+              Select File
+            </Button>
+          </Upload>
+          <Button
+            disabled={fileList.length === 0 || startTrace}
+            loading={startTrace}
+            htmlType={undefined}
+            onClick={onConfirm}
+            type="primary"
+            style={{
+              width: "100%",
+              maxWidth: "8.5em",
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            Start
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

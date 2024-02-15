@@ -128,9 +128,6 @@ const History: React.FC<HistoryProps> = (props) => {
 
   const onTabChange = (key: string) => {
     settab(key);
-    setchartData((_) => []);
-    setlastData((_) => null);
-    setcount((_) => 0);
     if (nic === "") {
       return;
     }
@@ -174,6 +171,8 @@ const History: React.FC<HistoryProps> = (props) => {
           onChange={(value: string) => {
             setlastData(null);
             setnic(value);
+            setchartData([]);
+            setlastData(null);
             setcount(0);
           }}
           options={interfaces}
@@ -182,7 +181,7 @@ const History: React.FC<HistoryProps> = (props) => {
       <div
         style={{
           height: "60vh",
-          maxHeight: "22em",
+          maxHeight: "20em",
           width: "90vw",
           marginBottom: "-1em",
           marginLeft: "auto",
