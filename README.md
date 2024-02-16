@@ -1,8 +1,10 @@
 # tcctl
 
-![tcctl](./README.assets/tcctl.png)
-
 > A webui for tc netem.
+
+![tcctl](./README.assets/manual-mode.png)
+
+![tcctl](./README.assets/trace-mode.png)
 
 ## Features
 

@@ -51,19 +51,12 @@ const History: React.FC<HistoryProps> = (props) => {
 
   useEffect(() => {
     postInterfaces()
-      .then((res) => {
-        let newInterfaces = [];
-        for (const nic in res) {
-          newInterfaces.push({
-            label: nic,
-            value: nic,
-          });
-        }
-        setinterfaces(newInterfaces);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+      .then((res) =>
+        setinterfaces(
+          Object.keys(res).map((nic) => ({ label: nic, value: nic })),
+        ),
+      )
+      .catch((err) => console.log(err));
   }, []);
 
   useEffect(() => {
@@ -104,14 +97,14 @@ const History: React.FC<HistoryProps> = (props) => {
             ];
           });
         }
-        setlastData((_) => data);
+        setlastData(data);
         setcount((prevCount) => prevCount + 1);
       } catch (err) {
         console.log(err);
       }
     }, 500);
     return () => clearInterval(interval);
-  }, [nic, count, lastData, chartData]);
+  });
 
   const tabItems: TabsProps["items"] = [
     {

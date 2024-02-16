@@ -1,7 +1,7 @@
 import { Input, Select, Switch } from "antd";
 import React, { useState } from "react";
-import { LossInputProps, LossPattern, LossValue } from "./NetemForm";
-import { getOnFloatNumberChange } from "./FormUtils";
+import { LossInputProps } from "./NetemForm";
+import { LossPattern, LossValue, getOnFloatNumberChange } from "./FormUtils";
 
 const { Option } = Select;
 

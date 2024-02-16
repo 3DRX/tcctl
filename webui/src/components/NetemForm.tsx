@@ -4,7 +4,7 @@ import { putNetem } from "../utils";
 import { useHotkeys } from "react-hotkeys-hook";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { LossInput } from "./LossInput";
-import { getOnFloatNumberChange } from "./FormUtils";
+import { LossPattern, LossValue, getOnFloatNumberChange } from "./FormUtils";
 
 const { Option } = Select;
 
@@ -19,28 +19,6 @@ interface RateValue {
 interface DelayValue {
   number?: number;
   unit?: Delay;
-}
-
-export enum LossPattern {
-  Random = "random",
-  State = "state",
-  Gemodel = "gemodel",
-}
-
-export interface LossValue {
-  randomPercent?: number;
-  randomCorrelation?: number;
-  stateP13?: number;
-  stateP31?: number;
-  stateP32?: number;
-  stateP23?: number;
-  stateP14?: number;
-  gemodelP?: number;
-  gemodelR?: number;
-  gemodel1H?: number;
-  gemodel1K?: number;
-  ecn?: boolean;
-  pattern?: LossPattern;
 }
 
 interface PercentageValue {

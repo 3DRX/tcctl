@@ -34,9 +34,7 @@ function App() {
       >
         <History dark={dark} />
         <FloatButton
-          onClick={(_) => {
-            setdark(!dark);
-          }}
+          onClick={() => setdark(!dark)}
           icon={
             <img
               src={dark ? sun : moon}
