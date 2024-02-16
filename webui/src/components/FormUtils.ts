@@ -43,4 +43,3 @@ export interface LossValue {
   ecn?: boolean;
   pattern?: LossPattern;
 }
-

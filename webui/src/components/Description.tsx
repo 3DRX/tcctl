@@ -13,6 +13,7 @@ function Description(props: DescriptionProps) {
         ...props.style,
         position: "absolute",
         left: "2ex",
+        marginTop: "-1.5em",
       }}
     >
       <h4
