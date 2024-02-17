@@ -4,7 +4,6 @@ body {
   margin: 0;
   background-color: var(--color-background);
 }
-
 #root {
   height: 100%;
   text-align: center;

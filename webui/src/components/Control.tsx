@@ -6,6 +6,7 @@ import TraceForm from "./TraceForm.tsx";
 import { putNetem } from "../utils.ts";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { NICPlaceholder } from "../consts.ts";
+import { TraceGenerator } from "./TraceGenerator.tsx";
 
 type ControlProps = {
   nic: string;
@@ -29,6 +30,11 @@ export const Control: React.FC<ControlProps> = ({ nic, api }) => {
       key: "2",
       label: "Trace",
       children: <TraceForm nic={nic} api={api} />,
+    },
+    {
+      key: "3",
+      label: "Trace Generator",
+      children: <TraceGenerator />,
     },
   ];
 
