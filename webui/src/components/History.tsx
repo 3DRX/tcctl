@@ -4,6 +4,7 @@ import { postInterfaces } from "../utils.ts";
 import Description from "./Description.tsx";
 import { Control } from "./Control.tsx";
 import { Chart } from "./Chart.tsx";
+import { NICPlaceholder } from "../consts.ts";
 
 type option = {
   label: string;
@@ -16,7 +17,7 @@ export type HistoryProps = {
 
 const History: React.FC<HistoryProps> = (props) => {
   const [interfaces, setinterfaces] = useState<option[]>([]);
-  const [nic, setnic] = useState<string>("");
+  const [nic, setnic] = useState<string>(NICPlaceholder);
   const [api, contextHolder] = notification.useNotification();
   const [form] = Form.useForm();
 
@@ -43,7 +44,7 @@ const History: React.FC<HistoryProps> = (props) => {
         <Form
           form={form}
           initialValues={{
-            nicSelect: "Select a NIC",
+            nicSelect: NICPlaceholder,
           }}
           style={{
             display: "flex",
@@ -54,7 +55,6 @@ const History: React.FC<HistoryProps> = (props) => {
         >
           <Form.Item name="nicSelect">
             <Select
-              defaultValue="Select a NIC"
               style={{
                 width: 140,
               }}
@@ -64,10 +64,10 @@ const History: React.FC<HistoryProps> = (props) => {
           </Form.Item>
           <Button
             onClick={() => {
-              setnic("");
-              form.setFieldsValue({ nicSelect: "Select a NIC" });
+              setnic(NICPlaceholder);
+              form.setFieldsValue({ nicSelect: NICPlaceholder });
             }}
-            disabled={nic === ""}
+            disabled={nic === NICPlaceholder}
           >
             Stop
           </Button>

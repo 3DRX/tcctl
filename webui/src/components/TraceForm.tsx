@@ -1,9 +1,10 @@
 import { UploadOutlined } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
 import { Button, Upload, List, message } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isTracefileValid, sendTraceLine } from "../utils";
 import { NotificationInstance } from "antd/es/notification/interface";
+import { NICPlaceholder } from "../consts";
 
 export interface TraceFormProps {
   nic: string;
@@ -12,24 +13,30 @@ export interface TraceFormProps {
 
 const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [data, setdata] = useState<string[]>([]);
+  const data = useRef<string[]>([]);
   const [currentData, setcurrentData] = useState<string[]>([]);
   const [startTrace, setstartTrace] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
-    if (!startTrace || data.length === 0) {
+    if (nic === NICPlaceholder) {
+      setstartTrace(false);
+      setcurrentData([]);
+    }
+  }, [nic]);
+
+  useEffect(() => {
+    if (!startTrace || data.current.length === 0) {
       return;
     } else {
       const intervalId = setInterval(() => {
-        const dat = data.shift()!;
-        const datSplit: string[] = dat.split(" ");
+        const datSplit: string[] = data.current.shift()!.split(" ");
         setcurrentData([
           ...currentData,
           `delay ${datSplit[0]}ms, loss ${datSplit[1]}%, rate ${datSplit[2]}Mbps`,
         ]);
-        sendTraceLine(dat, nic, api);
-        if (data.length === 0) {
+        sendTraceLine(datSplit, nic, api);
+        if (data.current.length === 0) {
           // stop interval
           setstartTrace(false);
         }
@@ -49,7 +56,8 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
             messageApi.success(`${file.name} uploaded successfully`);
             const dat = e.target.result.split("\n");
             dat.pop();
-            setdata(dat);
+            // setdata(dat);
+            data.current = dat;
             setcurrentData([]);
             setstartTrace(true);
           } else {
@@ -110,7 +118,6 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
             style={{
               marginBottom: "1em",
               marginTop: "-0.5em",
-              flexDirection: "column-reverse",
             }}
             header={<div>Trace History</div>}
           />
@@ -129,14 +136,16 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
           <Upload {...uploadProps}>
             <Button
               icon={<UploadOutlined />}
-              disabled={fileList.length >= 1 || nic === ""}
+              disabled={fileList.length >= 1 || nic === NICPlaceholder}
               onClick={() => setcurrentData([])}
             >
               Select File
             </Button>
           </Upload>
           <Button
-            disabled={fileList.length === 0 || startTrace}
+            disabled={
+              fileList.length === 0 || startTrace || nic === NICPlaceholder
+            }
             loading={startTrace}
             htmlType={undefined}
             onClick={onConfirm}

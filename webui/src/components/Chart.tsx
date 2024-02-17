@@ -7,7 +7,7 @@ import {
   YAxis,
 } from "recharts";
 import { ChartData } from "./ChartUtils";
-import { DarkPrimeCol, LightPrimeCol } from "../consts";
+import { DarkPrimeCol, LightPrimeCol, NICPlaceholder } from "../consts";
 import { useEffect, useState } from "react";
 import {
   InterfaceData,
@@ -33,7 +33,7 @@ export const Chart = (props: {
   }, [props.nic]);
 
   useEffect(() => {
-    if (props.nic === "") {
+    if (props.nic === NICPlaceholder) {
       return;
     }
     const interval = setInterval(async () => {

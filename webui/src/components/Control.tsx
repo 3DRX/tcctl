@@ -5,6 +5,7 @@ import NetemForm from "./NetemForm.tsx";
 import TraceForm from "./TraceForm.tsx";
 import { putNetem } from "../utils.ts";
 import { NotificationInstance } from "antd/es/notification/interface";
+import { NICPlaceholder } from "../consts.ts";
 
 type ControlProps = {
   nic: string;
@@ -33,7 +34,7 @@ export const Control: React.FC<ControlProps> = ({ nic, api }) => {
 
   const onTabChange = (key: string) => {
     settab(key);
-    if (nic === "") {
+    if (nic === NICPlaceholder) {
       return;
     }
     putNetem({

@@ -40,11 +40,11 @@ export function isTracefileValid(input: string): boolean {
 }
 
 export function sendTraceLine(
-  line: string,
+  datSplit: string[],
   nic: string,
   api: NotificationInstance,
 ) {
-  const lineSplit: number[] = line.split(" ").map((n) => Number(n));
+  const lineSplit: number[] = datSplit.map(Number);
   if (lineSplit.length !== 3) {
     api.error({
       message: "Invalid trace line",

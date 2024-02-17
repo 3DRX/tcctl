@@ -5,6 +5,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { LossInput } from "./LossInput";
 import { LossPattern, LossValue, getOnFloatNumberChange } from "./FormUtils";
+import { NICPlaceholder } from "../consts";
 
 const { Option } = Select;
 
@@ -215,7 +216,7 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
   );
 
   function checkNICSelected() {
-    if (nic === "") {
+    if (nic === NICPlaceholder) {
       api.error({
         message: "Error",
         description: "Please select a NIC first",
