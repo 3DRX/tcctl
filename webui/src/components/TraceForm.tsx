@@ -43,7 +43,7 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
       }, 1000);
       return () => clearInterval(intervalId);
     }
-  }, [startTrace, currentData]);
+  });
 
   const onConfirm = (e: any) => {
     e.preventDefault();
