@@ -81,7 +81,6 @@ export interface PercentageInputProps {
   onChange?: (value: PercentageValue) => void;
 }
 
-
 export const checkPercentage = (_: any, value: { number: number }) => {
   if (value.number >= 0 && value.number <= 100) {
     return Promise.resolve();

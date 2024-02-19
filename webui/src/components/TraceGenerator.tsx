@@ -11,6 +11,8 @@ import { ValueType, YAxisSelect } from "./YAxisSelect";
 import { Button, Form } from "antd";
 import { checkGe0, formItemStyle } from "./FormUtils";
 import { MsInput } from "./FormSubComponents/MsInput";
+import { WaveSelect, WaveType } from "./FormSubComponents/WaveSelect";
+import { NumberInput } from "./FormSubComponents/NumberInput";
 
 const chartDataPlaceholder = [
   {
@@ -139,18 +141,29 @@ const defaultFormValues = {
     number: 0,
     unit: "s",
   },
+  offset: {
+    number: 0,
+    unit: "s",
+  },
+  waveType: WaveType.Sine,
+  top: 0,
+  bottom: 0,
 };
 
 type TraceGeneratorFormProps = {
   setchartData: React.Dispatch<React.SetStateAction<ChartDataItem[]>>;
 };
 
-const TraceGeneratorForm = memo((props: TraceGeneratorFormProps) => {
+const TraceGeneratorForm = memo<TraceGeneratorFormProps>(({ setchartData }) => {
   const [form] = Form.useForm();
 
-  function onFinish(values: any) {}
+  function onFinish(values: any) {
+    console.log(`onFinish: ${JSON.stringify(values)}`);
+  }
 
-  function onValuesChange(changedValues: any, allValues: any) {}
+  function onValuesChange(_: any, allValues: any) {
+    console.log(`onValuesChange: ${JSON.stringify(allValues)}`);
+  }
 
   function getInitialValues(): any {
     return defaultFormValues;
@@ -180,6 +193,18 @@ const TraceGeneratorForm = memo((props: TraceGeneratorFormProps) => {
           style={formItemStyle}
         >
           <MsInput />
+        </Form.Item>
+        <Form.Item name="offset" label="Offset" style={formItemStyle}>
+          <MsInput />
+        </Form.Item>
+        <Form.Item name="waveType" label="Wave Type" style={formItemStyle}>
+          <WaveSelect />
+        </Form.Item>
+        <Form.Item name="top" label="Top" style={formItemStyle}>
+          <NumberInput />
+        </Form.Item>
+        <Form.Item name="bottom" label="Bottom" style={formItemStyle}>
+          <NumberInput />
         </Form.Item>
         <div
           style={{
