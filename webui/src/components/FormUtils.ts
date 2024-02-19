@@ -43,3 +43,59 @@ export interface LossValue {
   ecn?: boolean;
   pattern?: LossPattern;
 }
+
+export type Rate = "Mbps" | "Kbps";
+export type Delay = "ms" | "s";
+
+export interface RateValue {
+  number?: number;
+  unit?: Rate;
+}
+
+export interface DelayValue {
+  number?: number;
+  unit?: Delay;
+}
+
+export interface PercentageValue {
+  number?: number;
+}
+
+export interface RateInputProps {
+  value?: RateValue;
+  onChange?: (value: RateValue) => void;
+}
+
+export interface MsInputProps {
+  value?: DelayValue;
+  onChange?: (value: DelayValue) => void;
+}
+
+export interface LossInputProps {
+  value?: LossValue;
+  onChange?: (value: LossValue) => void;
+}
+
+export interface PercentageInputProps {
+  value?: PercentageValue;
+  onChange?: (value: PercentageValue) => void;
+}
+
+
+export const checkPercentage = (_: any, value: { number: number }) => {
+  if (value.number >= 0 && value.number <= 100) {
+    return Promise.resolve();
+  }
+  return Promise.reject(new Error("must be >= 0 and <= 100"));
+};
+
+export const checkGe0 = (_: any, value: { number: number }) => {
+  if (value.number >= 0) {
+    return Promise.resolve();
+  }
+  return Promise.reject(new Error("must be >= 0"));
+};
+
+export const formItemStyle: React.CSSProperties = {
+  marginTop: "1em",
+};

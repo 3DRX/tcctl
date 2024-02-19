@@ -3,47 +3,11 @@ import React, { useState } from "react";
 import { putNetem } from "../utils";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { LossInput } from "./LossInput";
-import { LossPattern, LossValue, getOnFloatNumberChange } from "./FormUtils";
+import { LossPattern, LossValue, PercentageInputProps, Rate, RateInputProps, RateValue, checkGe0, checkPercentage, formItemStyle, getOnFloatNumberChange } from "./FormUtils";
 import { NICPlaceholder } from "../consts";
+import { MsInput } from "./FormSubComponents/MsInput";
 
 const { Option } = Select;
-
-type Rate = "Mbps" | "Kbps";
-type Delay = "ms" | "s";
-
-interface RateValue {
-  number?: number;
-  unit?: Rate;
-}
-
-interface DelayValue {
-  number?: number;
-  unit?: Delay;
-}
-
-interface PercentageValue {
-  number?: number;
-}
-
-interface RateInputProps {
-  value?: RateValue;
-  onChange?: (value: RateValue) => void;
-}
-
-interface MsInputProps {
-  value?: DelayValue;
-  onChange?: (value: DelayValue) => void;
-}
-
-export interface LossInputProps {
-  value?: LossValue;
-  onChange?: (value: LossValue) => void;
-}
-
-interface PercentageInputProps {
-  value?: PercentageValue;
-  onChange?: (value: PercentageValue) => void;
-}
 
 const defalutValues = {
   delay: {
@@ -128,52 +92,6 @@ const RateInput: React.FC<RateInputProps> = ({ value = {}, onChange }) => {
       >
         <Option value="Mbps">Mbps</Option>
         <Option value="Kbps">Kbps</Option>
-      </Select>
-    </span>
-  );
-};
-
-const MsInput: React.FC<MsInputProps> = ({ value = {}, onChange }) => {
-  const [number, setNumber] = useState<number>(0);
-  const [unit, setUnit] = useState<Delay>("ms");
-
-  const triggerChange = (changedValue: DelayValue) => {
-    onChange?.({ number, unit: unit, ...value, ...changedValue });
-  };
-
-  const onNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newNumber = parseInt(e.target.value || "0", 10);
-    if (Number.isNaN(number)) {
-      return;
-    }
-    if (!("number" in value)) {
-      setNumber(newNumber);
-    }
-    triggerChange({ number: newNumber });
-  };
-
-  const onUnitChange = (newUnit: Delay) => {
-    if (!("unit" in value)) {
-      setUnit(newUnit);
-    }
-    triggerChange({ unit: newUnit });
-  };
-
-  return (
-    <span>
-      <Input
-        type="text"
-        value={value.number || number}
-        onChange={onNumberChange}
-        style={{ width: 70 }}
-      />
-      <Select
-        value={value.unit || unit}
-        style={{ width: 61, margin: "0 8px" }}
-        onChange={onUnitChange}
-      >
-        <Option value="ms">ms</Option>
-        <Option value="s">s</Option>
       </Select>
     </span>
   );
@@ -333,20 +251,6 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
     return Promise.resolve();
   };
 
-  const checkPercentage = (_: any, value: { number: number }) => {
-    if (value.number >= 0 && value.number <= 100) {
-      return Promise.resolve();
-    }
-    return Promise.reject(new Error("must be >= 0 and <= 100"));
-  };
-
-  const checkGe0 = (_: any, value: { number: number }) => {
-    if (value.number >= 0) {
-      return Promise.resolve();
-    }
-    return Promise.reject(new Error("must be >= 0"));
-  };
-
   const checkRate = (_: any, value: RateValue) => {
     if (!value.unit || !value.number) {
       return Promise.reject(new Error("Invalid rate or unit!"));
@@ -389,10 +293,6 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
     }
   };
 
-  const formItemStyle: React.CSSProperties = {
-    marginTop: "1em",
-  };
-
   const getInitialValues = () => {
     const form = localStorage.getItem("netem-form");
     return form ? JSON.parse(form) : defalutValues;
@@ -406,7 +306,7 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
       }}
     >
       <Form
-        name="customized_form_controls"
+        name="netem_form"
         layout="inline"
         onFinish={onFinish}
         onValuesChange={onValuesChange}

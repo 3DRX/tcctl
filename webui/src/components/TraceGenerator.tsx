@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import {
   Legend,
   Line,
@@ -8,6 +8,9 @@ import {
   YAxis,
 } from "recharts";
 import { ValueType, YAxisSelect } from "./YAxisSelect";
+import { Button, Form } from "antd";
+import { checkGe0, formItemStyle } from "./FormUtils";
+import { MsInput } from "./FormSubComponents/MsInput";
 
 const chartDataPlaceholder = [
   {
@@ -36,14 +39,24 @@ const chartDataPlaceholder = [
   },
 ];
 
-export const TraceGenerator = () => {
+type ChartDataItem = {
+  x: number;
+  delay: number;
+  loss: number;
+  rate: number;
+};
+
+type ChartProps = {
+  chartData: ChartDataItem[];
+};
+
+const Chart = (props: ChartProps) => {
   const [checkState, setcheckState] = useState({
     delay: false,
     loss: false,
     rate: false,
   });
   const queue = useRef<ValueType[]>([]);
-  const [chartData, setchartData] = useState(chartDataPlaceholder);
 
   const MaybeRenderFirstYAxis = () => {
     return queue.current.length > 0 ? (
@@ -95,41 +108,113 @@ export const TraceGenerator = () => {
   return (
     <div
       style={{
+        flex: 1,
+        // border: "1px solid #d9d9d9",
+      }}
+    >
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart
+          width={501}
+          height={400}
+          data={props.chartData}
+          syncMethod="index"
+        >
+          <XAxis dataKey="x" />
+          {MaybeRenderFirstYAxis()}
+          {MaybeRenderSecondYAxis()}
+          <Legend />
+        </LineChart>
+      </ResponsiveContainer>
+      <YAxisSelect
+        checkState={checkState}
+        setcheckState={setcheckState}
+        queue={queue}
+      />
+    </div>
+  );
+};
+
+const defaultFormValues = {
+  cycle: {
+    number: 0,
+    unit: "s",
+  },
+};
+
+type TraceGeneratorFormProps = {
+  setchartData: React.Dispatch<React.SetStateAction<ChartDataItem[]>>;
+};
+
+const TraceGeneratorForm = memo((props: TraceGeneratorFormProps) => {
+  const [form] = Form.useForm();
+
+  function onFinish(values: any) {}
+
+  function onValuesChange(changedValues: any, allValues: any) {}
+
+  function getInitialValues(): any {
+    return defaultFormValues;
+  }
+
+  function onReset() {}
+
+  return (
+    <div
+      style={{
+        flex: 1,
+        // border: "1px solid #d9d9d9",
+      }}
+    >
+      <Form
+        name="trace_generator_form"
+        layout="inline"
+        onFinish={onFinish}
+        onValuesChange={onValuesChange}
+        initialValues={getInitialValues()}
+        form={form}
+      >
+        <Form.Item
+          name="cycle"
+          label="Cycle"
+          rules={[{ validator: checkGe0 }]}
+          style={formItemStyle}
+        >
+          <MsInput />
+        </Form.Item>
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <Form.Item style={formItemStyle}>
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </Form.Item>
+          <Button type="default" onClick={onReset} style={formItemStyle}>
+            Reset
+          </Button>
+        </div>
+      </Form>
+    </div>
+  );
+});
+
+export const TraceGenerator = () => {
+  const [chartData, setchartData] =
+    useState<ChartDataItem[]>(chartDataPlaceholder);
+
+  return (
+    <div
+      style={{
         display: "flex",
         marginBottom: "1em",
       }}
     >
-      <div
-        style={{
-          flex: 1,
-          // border: "1px solid #d9d9d9",
-        }}
-      >
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart
-            width={501}
-            height={400}
-            data={chartData}
-            syncMethod="index"
-          >
-            <XAxis dataKey="x" />
-            {MaybeRenderFirstYAxis()}
-            {MaybeRenderSecondYAxis()}
-            <Legend />
-          </LineChart>
-        </ResponsiveContainer>
-        <YAxisSelect
-          checkState={checkState}
-          setcheckState={setcheckState}
-          queue={queue}
-        />
-      </div>
-      <div
-        style={{
-          flex: 1,
-          // border: "1px solid #d9d9d9",
-        }}
-      ></div>
+      <Chart chartData={chartData} />
+      <TraceGeneratorForm setchartData={setchartData} />
     </div>
   );
 };
