@@ -1,7 +1,6 @@
 import { Button, Form, Input, Select } from "antd";
 import React, { useState } from "react";
 import { putNetem } from "../utils";
-import { useHotkeys } from "react-hotkeys-hook";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { LossInput } from "./LossInput";
 import { LossPattern, LossValue, getOnFloatNumberChange } from "./FormUtils";
@@ -207,13 +206,6 @@ export interface NetemFormProps {
 
 const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
   const [form] = Form.useForm();
-  useHotkeys(
-    "ctrl+return",
-    () => {
-      form.submit();
-    },
-    [],
-  );
 
   function checkNICSelected() {
     if (nic === NICPlaceholder) {

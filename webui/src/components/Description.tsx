@@ -1,16 +1,15 @@
 import { HeartTwoTone } from "@ant-design/icons";
 import { DarkPrimeCol, LightPrimeCol } from "../consts";
+import { memo } from "react";
 
 export type DescriptionProps = {
   dark: boolean;
-  style?: React.CSSProperties;
 };
 
 function Description(props: DescriptionProps) {
   return (
     <div
       style={{
-        ...props.style,
         position: "absolute",
         left: "2ex",
         marginTop: "-1.5em",
@@ -42,4 +41,4 @@ function Description(props: DescriptionProps) {
   );
 }
 
-export default Description;
+export default memo(Description);
