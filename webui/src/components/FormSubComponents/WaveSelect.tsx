@@ -23,6 +23,7 @@ export const WaveSelect: React.FC<WaveSelectProps> = (props) => {
         { value: WaveType.Triangle, label: "Triangle" },
         { value: WaveType.Sawtooth, label: "Sawtooth" },
       ]}
+      onChange={props.onChange}
     />
   );
 };

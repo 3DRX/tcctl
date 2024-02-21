@@ -1,4 +1,4 @@
-import { memo, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import {
   Legend,
   Line,
@@ -8,7 +8,7 @@ import {
   YAxis,
 } from "recharts";
 import { ValueType, YAxisSelect } from "./YAxisSelect";
-import { Button, Form } from "antd";
+import { Form } from "antd";
 import { checkGe0, formItemStyle } from "./FormUtils";
 import { MsInput } from "./FormSubComponents/MsInput";
 import { WaveSelect, WaveType } from "./FormSubComponents/WaveSelect";
@@ -52,7 +52,7 @@ type ChartProps = {
   chartData: ChartDataItem[];
 };
 
-const Chart = (props: ChartProps) => {
+const Chart = memo<ChartProps>((props) => {
   const [checkState, setcheckState] = useState({
     delay: false,
     loss: false,
@@ -134,7 +134,7 @@ const Chart = (props: ChartProps) => {
       />
     </div>
   );
-};
+});
 
 const defaultFormValues = {
   cycle: {
@@ -151,85 +151,84 @@ const defaultFormValues = {
 };
 
 type TraceGeneratorFormProps = {
-  setchartData: React.Dispatch<React.SetStateAction<ChartDataItem[]>>;
+  setchartValues: React.Dispatch<
+    React.SetStateAction<{
+      cycle: {
+        number: number;
+        unit: string;
+      };
+      offset: {
+        number: number;
+        unit: string;
+      };
+      waveType: WaveType;
+      top: number;
+      bottom: number;
+    }>
+  >;
+  label: "delay" | "loss" | "rate";
 };
 
-const TraceGeneratorForm = memo<TraceGeneratorFormProps>(({ setchartData }) => {
-  const [form] = Form.useForm();
+const TraceGeneratorForm = memo<TraceGeneratorFormProps>(
+  ({ setchartValues, label }) => {
+    const [form] = Form.useForm();
 
-  function onFinish(values: any) {
-    console.log(`onFinish: ${JSON.stringify(values)}`);
-  }
+    function onValuesChange(_: any, allValues: typeof defaultFormValues) {
+      console.log(`onValuesChange: ${JSON.stringify(allValues)}`);
+      setchartValues(allValues);
+    }
 
-  function onValuesChange(_: any, allValues: any) {
-    console.log(`onValuesChange: ${JSON.stringify(allValues)}`);
-  }
+    function getInitialValues(): any {
+      return defaultFormValues;
+    }
 
-  function getInitialValues(): any {
-    return defaultFormValues;
-  }
-
-  function onReset() {}
-
-  return (
-    <div
-      style={{
-        flex: 1,
-        // border: "1px solid #d9d9d9",
-      }}
-    >
-      <Form
-        name="trace_generator_form"
-        layout="inline"
-        onFinish={onFinish}
-        onValuesChange={onValuesChange}
-        initialValues={getInitialValues()}
-        form={form}
-      >
-        <Form.Item
-          name="cycle"
-          label="Cycle"
-          rules={[{ validator: checkGe0 }]}
-          style={formItemStyle}
+    return (
+      <>
+        <a>{label}</a>
+        <Form
+          name={`trace_generator_form_${label}`}
+          layout="inline"
+          onValuesChange={onValuesChange}
+          initialValues={getInitialValues()}
+          form={form}
         >
-          <MsInput />
-        </Form.Item>
-        <Form.Item name="offset" label="Offset" style={formItemStyle}>
-          <MsInput />
-        </Form.Item>
-        <Form.Item name="waveType" label="Wave Type" style={formItemStyle}>
-          <WaveSelect />
-        </Form.Item>
-        <Form.Item name="top" label="Top" style={formItemStyle}>
-          <NumberInput />
-        </Form.Item>
-        <Form.Item name="bottom" label="Bottom" style={formItemStyle}>
-          <NumberInput />
-        </Form.Item>
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          <Form.Item style={formItemStyle}>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
+          <Form.Item
+            name="cycle"
+            label="Cycle"
+            rules={[{ validator: checkGe0 }]}
+            style={formItemStyle}
+          >
+            <MsInput />
           </Form.Item>
-          <Button type="default" onClick={onReset} style={formItemStyle}>
-            Reset
-          </Button>
-        </div>
-      </Form>
-    </div>
-  );
-});
+          <Form.Item name="offset" label="Offset" style={formItemStyle}>
+            <MsInput />
+          </Form.Item>
+          <Form.Item name="waveType" label="Wave Type" style={formItemStyle}>
+            <WaveSelect />
+          </Form.Item>
+          <Form.Item name="top" label="Top" style={formItemStyle}>
+            <NumberInput />
+          </Form.Item>
+          <Form.Item name="bottom" label="Bottom" style={formItemStyle}>
+            <NumberInput />
+          </Form.Item>
+        </Form>
+      </>
+    );
+  },
+);
 
 export const TraceGenerator = () => {
   const [chartData, setchartData] =
     useState<ChartDataItem[]>(chartDataPlaceholder);
+  const [delayValues, setdelayValues] = useState(defaultFormValues);
+  const [lossValues, setlossValues] = useState(defaultFormValues);
+  const [rateValues, setrateValues] = useState(defaultFormValues);
+
+  useEffect(() => {
+    setchartData(chartDataPlaceholder);
+    // TODO: Implement the logic to generate the chart data
+  }, [delayValues, lossValues, rateValues]);
 
   return (
     <div
@@ -239,7 +238,17 @@ export const TraceGenerator = () => {
       }}
     >
       <Chart chartData={chartData} />
-      <TraceGeneratorForm setchartData={setchartData} />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+        }}
+      >
+        <TraceGeneratorForm setchartValues={setdelayValues} label="delay" />
+        <TraceGeneratorForm setchartValues={setlossValues} label="loss" />
+        <TraceGeneratorForm setchartValues={setrateValues} label="rate" />
+      </div>
     </div>
   );
 };
