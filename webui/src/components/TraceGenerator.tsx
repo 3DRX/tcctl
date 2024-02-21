@@ -48,6 +48,21 @@ type ChartDataItem = {
   rate: number;
 };
 
+type DelayDataItem = {
+  x: number;
+  delay: number;
+};
+
+type LossDataItem = {
+  x: number;
+  loss: number;
+};
+
+type RateDataItem = {
+  x: number;
+  rate: number;
+};
+
 type ChartProps = {
   chartData: ChartDataItem[];
 };
@@ -226,8 +241,140 @@ export const TraceGenerator = () => {
   const [rateValues, setrateValues] = useState(defaultFormValues);
 
   useEffect(() => {
-    setchartData(chartDataPlaceholder);
-    // TODO: Implement the logic to generate the chart data
+    const delay: DelayDataItem[] = [];
+    const loss: LossDataItem[] = [];
+    const rate: RateDataItem[] = [];
+    if (delayValues.waveType === WaveType.Sine) {
+      for (let i = 0; i < delayValues.cycle.number; i++) {
+        delay.push({
+          x: i,
+          delay:
+            delayValues.top *
+              Math.sin((i * 2 * Math.PI) / delayValues.cycle.number) +
+            delayValues.bottom,
+        });
+      }
+    } else if (delayValues.waveType === WaveType.Square) {
+      for (let i = 0; i < delayValues.cycle.number; i++) {
+        delay.push({
+          x: i,
+          delay:
+            i < delayValues.cycle.number / 2
+              ? delayValues.top
+              : delayValues.bottom,
+        });
+      }
+    } else if (delayValues.waveType === WaveType.Triangle) {
+      for (let i = 0; i < delayValues.cycle.number; i++) {
+        delay.push({
+          x: i,
+          delay:
+            (2 * delayValues.top * i) / delayValues.cycle.number +
+            delayValues.bottom,
+        });
+      }
+    } else if (delayValues.waveType === WaveType.Sawtooth) {
+      for (let i = 0; i < delayValues.cycle.number; i++) {
+        delay.push({
+          x: i,
+          delay:
+            (delayValues.top * i) / delayValues.cycle.number +
+            delayValues.bottom,
+        });
+      }
+    }
+
+    if (lossValues.waveType === WaveType.Sine) {
+      for (let i = 0; i < lossValues.cycle.number; i++) {
+        loss.push({
+          x: i,
+          loss:
+            lossValues.top *
+              Math.sin((i * 2 * Math.PI) / lossValues.cycle.number) +
+            lossValues.bottom,
+        });
+      }
+    } else if (lossValues.waveType === WaveType.Square) {
+      for (let i = 0; i < lossValues.cycle.number; i++) {
+        loss.push({
+          x: i,
+          loss:
+            i < lossValues.cycle.number / 2
+              ? lossValues.top
+              : lossValues.bottom,
+        });
+      }
+    } else if (lossValues.waveType === WaveType.Triangle) {
+      for (let i = 0; i < lossValues.cycle.number; i++) {
+        loss.push({
+          x: i,
+          loss:
+            (2 * lossValues.top * i) / lossValues.cycle.number +
+            lossValues.bottom,
+        });
+      }
+    } else if (lossValues.waveType === WaveType.Sawtooth) {
+      for (let i = 0; i < lossValues.cycle.number; i++) {
+        loss.push({
+          x: i,
+          loss:
+            (lossValues.top * i) / lossValues.cycle.number + lossValues.bottom,
+        });
+      }
+    }
+    if (rateValues.waveType === WaveType.Sine) {
+      for (let i = 0; i < rateValues.cycle.number; i++) {
+        rate.push({
+          x: i,
+          rate:
+            rateValues.top *
+              Math.sin((i * 2 * Math.PI) / rateValues.cycle.number) +
+            rateValues.bottom,
+        });
+      }
+    } else if (rateValues.waveType === WaveType.Square) {
+      for (let i = 0; i < rateValues.cycle.number; i++) {
+        rate.push({
+          x: i,
+          rate:
+            i < rateValues.cycle.number / 2
+              ? rateValues.top
+              : rateValues.bottom,
+        });
+      }
+    } else if (rateValues.waveType === WaveType.Triangle) {
+      for (let i = 0; i < rateValues.cycle.number; i++) {
+        rate.push({
+          x: i,
+          rate:
+            (2 * rateValues.top * i) / rateValues.cycle.number +
+            rateValues.bottom,
+        });
+      }
+    } else if (rateValues.waveType === WaveType.Sawtooth) {
+      for (let i = 0; i < rateValues.cycle.number; i++) {
+        rate.push({
+          x: i,
+          rate:
+            (rateValues.top * i) / rateValues.cycle.number + rateValues.bottom,
+        });
+      }
+    }
+    const newChartData: ChartDataItem[] = [];
+    for (let i = 0; i < delay.length; i++) {
+      newChartData.push({
+        x: i,
+        delay: delay[i]
+          ? delay[i].delay
+          : delay[i - delayValues.cycle.number]?.delay,
+        loss: loss[i] ? loss[i].loss : loss[i - lossValues.cycle.number]?.loss,
+        rate: rate[i] ? rate[i].rate : rate[i - rateValues.cycle.number]?.rate,
+      });
+    }
+    console.log(`newChartData: ${JSON.stringify(newChartData)}`);
+    setchartData((_: ChartDataItem[]) => {
+      return newChartData;
+    });
   }, [delayValues, lossValues, rateValues]);
 
   return (
