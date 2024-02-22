@@ -62,9 +62,11 @@ export const Chart = (props: {
                 x: count - 1,
                 send: bytesPerSecondToKbps(
                   data.bytes_sent - lastData.bytes_sent,
+                  0.5,
                 ),
                 recv: bytesPerSecondToKbps(
                   data.bytes_recv - lastData.bytes_recv,
+                  0.5,
                 ),
               },
             ];

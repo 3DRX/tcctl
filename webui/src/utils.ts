@@ -17,8 +17,8 @@ export function parseInterfaceData(data: number[]): InterfaceData | null {
   }
 }
 
-export function bytesPerSecondToKbps(bytes: number): number {
-  return (bytes * 8) / 1024;
+export function bytesPerSecondToKbps(bytes: number, intervalSec: number): number {
+  return (bytes * 8) / (1024 * intervalSec);
 }
 
 export function isTracefileValid(input: string): boolean {
