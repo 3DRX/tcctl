@@ -75,7 +75,7 @@ const History: React.FC<HistoryProps> = (props) => {
       </div>
       <Chart dark={props.dark} nic={nic} api={api} />
       {contextHolder}
-      <Control nic={nic} api={api} />
+      <Control nic={nic} api={api} dark={props.dark} />
     </div>
   );
 };

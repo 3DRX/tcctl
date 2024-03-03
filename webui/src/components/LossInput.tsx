@@ -1,6 +1,11 @@
 import { Input, Select, Switch } from "antd";
 import React, { useState } from "react";
-import { LossInputProps, LossPattern, LossValue, getOnFloatNumberChange } from "./FormUtils";
+import {
+  LossInputProps,
+  LossPattern,
+  LossValue,
+  getOnFloatNumberChange,
+} from "./FormUtils";
 
 const { Option } = Select;
 

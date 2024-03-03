@@ -3,7 +3,18 @@ import React, { useState } from "react";
 import { putNetem } from "../utils";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { LossInput } from "./LossInput";
-import { LossPattern, LossValue, PercentageInputProps, Rate, RateInputProps, RateValue, checkGe0, checkPercentage, formItemStyle, getOnFloatNumberChange } from "./FormUtils";
+import {
+  LossPattern,
+  LossValue,
+  PercentageInputProps,
+  Rate,
+  RateInputProps,
+  RateValue,
+  checkGe0,
+  checkPercentage,
+  formItemStyle,
+  getOnFloatNumberChange,
+} from "./FormUtils";
 import { NICPlaceholder } from "../consts";
 import { MsInput } from "./FormSubComponents/MsInput";
 

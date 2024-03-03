@@ -49,4 +49,3 @@ export const MsInput: React.FC<MsInputProps> = ({ value = {}, onChange }) => {
     </span>
   );
 };
-

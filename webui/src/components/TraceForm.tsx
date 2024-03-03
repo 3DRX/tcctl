@@ -1,10 +1,11 @@
 import { UploadOutlined } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
-import { Button, Upload, List, message } from "antd";
+import { Button, Upload, List, message, Switch } from "antd";
 import { memo, useEffect, useRef, useState } from "react";
 import { isTracefileValid, sendTraceLine } from "../utils";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { NICPlaceholder } from "../consts";
+import cycleIcon from "/cycle.svg";
 
 type ControllerProps = {
   setcurrentData: React.Dispatch<React.SetStateAction<string[]>>;
@@ -12,6 +13,9 @@ type ControllerProps = {
   setstartTrace: React.Dispatch<React.SetStateAction<boolean>>;
   data: React.MutableRefObject<string[]>;
   nic: string;
+  dark: boolean;
+  cycle: boolean;
+  setcycle: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const Controller = memo<ControllerProps>((props) => {
@@ -94,6 +98,23 @@ const Controller = memo<ControllerProps>((props) => {
           Select File
         </Button>
       </Upload>
+      <div>
+        <img
+          src={cycleIcon}
+          alt=""
+          style={{
+            maxHeight: "2em",
+            marginBottom: "-0.7em",
+            marginRight: "0.5em",
+            filter: props.dark ? "invert(100%)" : "none",
+          }}
+        />
+        <Switch
+          defaultChecked={props.cycle}
+          onChange={(checked) => props.setcycle(checked)}
+          style={{ width: "100%", maxWidth: "1em" }}
+        />
+      </div>
       <Button
         disabled={
           fileList.length === 0 ||
@@ -120,12 +141,15 @@ const Controller = memo<ControllerProps>((props) => {
 export interface TraceFormProps {
   nic: string;
   api: NotificationInstance;
+  dark: boolean;
 }
 
-const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
+const TraceForm: React.FC<TraceFormProps> = ({ nic, api, dark }) => {
   const data = useRef<string[]>([]);
+  const databackup = useRef<string[]>([]);
   const [currentData, setcurrentData] = useState<string[]>([]);
   const [startTrace, setstartTrace] = useState(false);
+  const [cycle, setcycle] = useState(false);
 
   useEffect(() => {
     if (nic === NICPlaceholder) {
@@ -139,15 +163,23 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
       return;
     } else {
       const intervalId = setInterval(() => {
-        const datSplit: string[] = data.current.shift()!.split(" ");
+        const temp = data.current.shift()!;
+        databackup.current.push(temp);
+        const datSplit: string[] = temp.split(" ");
         setcurrentData([
           ...currentData,
           `delay ${datSplit[0]}ms, loss ${datSplit[1]}%, rate ${datSplit[2]}Mbps`,
         ]);
         sendTraceLine(datSplit, nic, api);
         if (data.current.length === 0) {
-          // stop interval
-          setstartTrace(false);
+          if (cycle) {
+            data.current = databackup.current;
+            databackup.current = [];
+            setcurrentData([]);
+          } else {
+            // stop interval
+            setstartTrace(false);
+          }
         }
       }, 1000);
       return () => clearInterval(intervalId);
@@ -182,6 +214,9 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api }) => {
           setstartTrace={setstartTrace}
           data={data}
           nic={nic}
+          dark={dark}
+          cycle={cycle}
+          setcycle={setcycle}
         />
       </div>
     </div>

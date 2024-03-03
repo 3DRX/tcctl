@@ -11,9 +11,10 @@ import { NICPlaceholder } from "../consts.ts";
 type ControlProps = {
   nic: string;
   api: NotificationInstance;
+  dark: boolean;
 };
 
-export const Control: React.FC<ControlProps> = ({ nic, api }) => {
+export const Control: React.FC<ControlProps> = ({ nic, api, dark }) => {
   const [tab, settab] = useState<string>(localStorage.getItem("tab") || "1");
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export const Control: React.FC<ControlProps> = ({ nic, api }) => {
     {
       key: "2",
       label: "Trace",
-      children: <TraceForm nic={nic} api={api} />,
+      children: <TraceForm nic={nic} api={api} dark={dark} />,
     },
     // {
     //   key: "3",
