@@ -16,6 +16,7 @@ import {
   postInterfaces,
 } from "../utils";
 import { NotificationInstance } from "antd/es/notification/interface";
+import { useInterval } from "usehooks-ts";
 
 export const Chart = (props: {
   dark: boolean;
@@ -32,54 +33,47 @@ export const Chart = (props: {
     setcount(0);
   }, [props.nic]);
 
-  useEffect(() => {
-    if (props.nic === NICPlaceholder) {
-      return;
-    }
-    const interval = setInterval(async () => {
-      try {
-        const res = await postInterfaces();
-        const data: InterfaceData | null = parseInterfaceData(res[props.nic]);
-        if (data === null) {
-          props.api.error({
-            message: "Error",
-            description: "Data is invalid",
-            placement: "topRight",
-            style: {
-              height: 85,
-            },
-          });
-          return;
-        }
-        if (lastData !== null) {
-          setchartData((prevData) => {
-            if (prevData.length > 46) {
-              prevData.shift();
-            }
-            return [
-              ...prevData,
-              {
-                x: count - 1,
-                send: bytesPerSecondToKbps(
-                  data.bytes_sent - lastData.bytes_sent,
-                  0.5,
-                ),
-                recv: bytesPerSecondToKbps(
-                  data.bytes_recv - lastData.bytes_recv,
-                  0.5,
-                ),
-              },
-            ];
-          });
-        }
-        setlastData(data);
-        setcount((prevCount) => prevCount + 1);
-      } catch (err) {
-        console.log(err);
+  useInterval(
+    async () => {
+      const res = await postInterfaces();
+      const data: InterfaceData | null = parseInterfaceData(res[props.nic]);
+      if (data === null) {
+        props.api.error({
+          message: "Error",
+          description: "Data is invalid",
+          placement: "topRight",
+          style: {
+            height: 85,
+          },
+        });
+        return;
       }
-    }, 500);
-    return () => clearInterval(interval);
-  });
+      if (lastData !== null) {
+        setchartData((prevData) => {
+          if (prevData.length > 46) {
+            prevData.shift();
+          }
+          return [
+            ...prevData,
+            {
+              x: count - 1,
+              send: bytesPerSecondToKbps(
+                data.bytes_sent - lastData.bytes_sent,
+                0.5,
+              ),
+              recv: bytesPerSecondToKbps(
+                data.bytes_recv - lastData.bytes_recv,
+                0.5,
+              ),
+            },
+          ];
+        });
+      }
+      setlastData(data);
+      setcount((prevCount) => prevCount + 1);
+    },
+    props.nic === NICPlaceholder ? null : 500,
+  );
 
   return (
     <div

@@ -5,6 +5,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { isTracefileValid, sendTraceLine } from "../utils";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { NICPlaceholder } from "../consts";
+import { useInterval } from "usehooks-ts";
 import cycleIcon from "/cycle.svg";
 
 type ControllerProps = {
@@ -158,33 +159,29 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api, dark }) => {
     }
   }, [nic]);
 
-  useEffect(() => {
-    if (!startTrace || data.current.length === 0) {
-      return;
-    } else {
-      const intervalId = setInterval(() => {
-        const temp = data.current.shift()!;
-        databackup.current.push(temp);
-        const datSplit: string[] = temp.split(" ");
-        setcurrentData([
-          ...currentData,
-          `delay ${datSplit[0]}ms, loss ${datSplit[1]}%, rate ${datSplit[2]}Mbps`,
-        ]);
-        sendTraceLine(datSplit, nic, api);
-        if (data.current.length === 0) {
-          if (cycle) {
-            data.current = databackup.current;
-            databackup.current = [];
-            setcurrentData([]);
-          } else {
-            // stop interval
-            setstartTrace(false);
-          }
+  useInterval(
+    async () => {
+      const temp = data.current.shift()!;
+      databackup.current.push(temp);
+      const datSplit: string[] = temp.split(" ");
+      setcurrentData([
+        ...currentData,
+        `delay ${datSplit[0]}ms, loss ${datSplit[1]}%, rate ${datSplit[2]}Mbps`,
+      ]);
+      sendTraceLine(datSplit, nic, api);
+      if (data.current.length === 0) {
+        if (cycle) {
+          data.current = databackup.current;
+          databackup.current = [];
+          setcurrentData([]);
+        } else {
+          // stop interval
+          setstartTrace(false);
         }
-      }, 1000);
-      return () => clearInterval(intervalId);
-    }
-  });
+      }
+    },
+    startTrace ? 1000 : null,
+  );
 
   return (
     <div>
