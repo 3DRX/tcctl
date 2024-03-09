@@ -2,6 +2,8 @@
 chmod +x ./tcctld
 chmod +x ./start-tcctl.sh
 chmod +x ./stop-tcctl.sh
+chmod +x ./upgrade.sh
+chmod +x ./tcctl
 echo "adding /etc/init.d/tcctl"
 cp ./tcctld /etc/init.d/
 echo "enableing /etc/init.d/tcctl"

@@ -31,6 +31,7 @@ echo "copy scripts to ./build"
 cp ./install.sh ./build/
 cp ./start-tcctl.sh ./build/
 cp ./stop-tcctl.sh ./build/
+cp ./upgrade.sh ./build/
 cp ./tcctld ./build/
 
 echo "done"
