@@ -1,10 +1,18 @@
 module github.com/3DRX/tcctl/server
 
-go 1.19
+go 1.21
+
+toolchain go1.22.1
 
 require github.com/shirou/gopsutil/v3 v3.23.12
 
-require github.com/kr/text v0.2.0 // indirect
+require (
+	github.com/google/uuid v1.3.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
+	github.com/samber/slog-gin v1.10.2 // indirect
+	go.opentelemetry.io/otel v1.19.0 // indirect
+	go.opentelemetry.io/otel/trace v1.19.0 // indirect
+)
 
 require (
 	github.com/bytedance/sonic v1.10.2 // indirect

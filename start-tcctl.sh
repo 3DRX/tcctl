@@ -1,2 +1,2 @@
 #!/bin/bash
-nohup ./tcctl prod > tcctl.log 2>&1 &
+nohup ./tcctl prod > /dev/null &

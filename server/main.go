@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 
+	"github.com/3DRX/tcctl/server/logger"
 	"github.com/3DRX/tcctl/server/netem"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	sloggin "github.com/samber/slog-gin"
 	"github.com/shirou/gopsutil/v3/net"
 )
 
@@ -18,6 +19,7 @@ func main() {
 	args := os.Args[1:]
 	isProd := false
 	config := cors.DefaultConfig()
+	logger := logger.GetInstance()
 	if len(args) != 0 && args[0] == "prod" {
 		gin.SetMode(gin.ReleaseMode)
 		isProd = true
@@ -30,13 +32,15 @@ func main() {
 	if !isProd {
 		r.Use(cors.New(config))
 	}
+	r.Use(sloggin.New(logger))
+	r.Use(gin.Recovery())
 
 	r.Static("/", "./dist")
 
 	r.POST("/api/v2/interfaces", func(c *gin.Context) {
 		counters, err := net.IOCounters(true)
 		if err != nil {
-			log.Fatal(err)
+			logger.Error(err.Error())
 			c.JSON(500, err.Error())
 			return
 		}
@@ -80,9 +84,10 @@ func cleanup() {
 	}
 	err := controller.UnsetAllNetem()
 	if len(err) != 0 {
-		log.Fatal(
-			strings.Join(err, ", "),
-			". Please consider reboot or manually unset all tc qdisc rules",
+		logger := logger.GetInstance()
+		logger.Error(
+			strings.Join(err, ", ") +
+				". Please consider reboot or manually unset all tc qdisc rules",
 		)
 	}
 }

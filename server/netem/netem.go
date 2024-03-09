@@ -3,10 +3,11 @@ package netem
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os/exec"
 	"runtime"
 	"strings"
+
+	"github.com/3DRX/tcctl/server/logger"
 )
 
 // TODO: Implement the additional netem props
@@ -119,7 +120,7 @@ var controller *Controller
 
 func init() {
 	controller = &Controller{}
-	log.Println("init controller")
+	logger.GetInstance().Info("init controller")
 	controller.NICExecutorMap = make(map[string]*Executor)
 }
 
@@ -158,10 +159,11 @@ func (c *Controller) ExecuteNetem(form *NetemForm) error {
 			executor.unsetNetem()
 		})
 		c.NICExecutorMap[form.NIC] = executor
-		log.Println("create new executor", form.NIC)
+		logger := logger.GetInstance()
+		logger.Info("create new executor " + form.NIC)
 		initErr := executor.unsetNetem()
 		if initErr != nil {
-			log.Println("clear netem error:", initErr)
+			logger.Warn("clear netem error: " + initErr.Error())
 		}
 		err := executor.executeNetem(form)
 		if err != nil {
@@ -248,7 +250,7 @@ func (e *Executor) executeNetem(f *NetemForm) error {
 		cmdArr = append(cmdArr, "packets", fmt.Sprintf("%d", f.SlotPackets), "bytes", fmt.Sprintf("%d", f.SlotBytes))
 	}
 	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
-	log.Println("setNetem>", strings.Join(cmd.Args, " "))
+	logger.GetInstance().Info("setNetem>" + strings.Join(cmd.Args, " "))
 	return executeCommand(cmd)
 }
 
@@ -257,7 +259,7 @@ func (e *Executor) unsetNetem() error {
 		return nil
 	}
 	cmd := exec.Command("tc", "qdisc", "del", "dev", e.nic, "root")
-	log.Println("unsetNetem>", strings.Join(cmd.Args, " "))
+	logger.GetInstance().Info("unsetNetem>" + strings.Join(cmd.Args, " "))
 	err := executeCommand(cmd)
 	if err == nil {
 		e.first = true
