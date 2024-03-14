@@ -166,7 +166,7 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api, dark }) => {
       const datSplit: string[] = temp.split(" ");
       setcurrentData([
         ...currentData,
-        `delay ${datSplit[0]}ms, loss ${datSplit[1]}%, rate ${datSplit[2]}Mbps`,
+        `${currentData.length + 1}. delay ${datSplit[0]}ms, loss ${datSplit[1]}%, rate ${datSplit[2]}Mbps`,
       ]);
       sendTraceLine(datSplit, nic, api);
       if (data.current.length === 0) {
@@ -198,6 +198,7 @@ const TraceForm: React.FC<TraceFormProps> = ({ nic, api, dark }) => {
             locale={{ emptyText: "No data" }}
             dataSource={currentData}
             renderItem={(item) => <List.Item>{item}</List.Item>}
+            rowKey={(item) => item}
             style={{
               marginBottom: "1em",
               marginTop: "-0.5em",
