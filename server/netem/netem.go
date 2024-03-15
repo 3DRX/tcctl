@@ -48,15 +48,23 @@ type NetemForm struct {
 }
 
 func (n *NetemForm) lossRandomSet() bool {
-	return n.LossRandomPercent != 0 || n.LossRandomCorrelationPercent != 0
+	return n.LossRandomPercent != 0 ||
+		n.LossRandomCorrelationPercent != 0
 }
 
 func (n *NetemForm) lossStateSet() bool {
-	return n.LossStateP13 != 0 || n.LossStateP31 != 0 || n.LossStateP32 != 0 || n.LossStateP23 != 0 || n.LossStateP14 != 0
+	return n.LossStateP13 != 0 ||
+		n.LossStateP31 != 0 ||
+		n.LossStateP32 != 0 ||
+		n.LossStateP23 != 0 ||
+		n.LossStateP14 != 0
 }
 
 func (n *NetemForm) lossGEModelSet() bool {
-	return n.LossGEModelPercent != 0 || n.LossGEModelR != 0 || n.LossGEModel1H != 0 || n.LossGEModel1K != 0
+	return n.LossGEModelPercent != 0 ||
+		n.LossGEModelR != 0 ||
+		n.LossGEModel1H != 0 ||
+		n.LossGEModel1K != 0
 }
 
 func (n *NetemForm) slotMinMaxDelaySet() bool {
@@ -71,7 +79,11 @@ func (n *NetemForm) validate() error {
 	if n.NIC == "" {
 		return fmt.Errorf("NIC is required")
 	}
-	if n.DelayDistribution != "uniform" && n.DelayDistribution != "normal" && n.DelayDistribution != "pareto" && n.DelayDistribution != "paretonormal" && n.DelayDistribution != "" {
+	if n.DelayDistribution != "uniform" &&
+		n.DelayDistribution != "normal" &&
+		n.DelayDistribution != "pareto" &&
+		n.DelayDistribution != "paretonormal" &&
+		n.DelayDistribution != "" {
 		return fmt.Errorf("DelayDistribution must be one of uniform, normal, pareto, paretonormal")
 	}
 	// loss pattern can only be one of ["random", "state", "gemodel"]
@@ -97,7 +109,11 @@ func (n *NetemForm) validate() error {
 			return fmt.Errorf("state loss and gemodel loss cannot be set at the same time")
 		}
 	}
-	if n.SlotDistribution != "uniform" && n.SlotDistribution != "normal" && n.SlotDistribution != "pareto" && n.SlotDistribution != "paretonormal" && n.SlotDistribution != "" {
+	if n.SlotDistribution != "uniform" &&
+		n.SlotDistribution != "normal" &&
+		n.SlotDistribution != "pareto" &&
+		n.SlotDistribution != "paretonormal" &&
+		n.SlotDistribution != "" {
 		return fmt.Errorf("SlotDistribution must be one of uniform, normal, pareto, paretonormal")
 	}
 	if n.slotMinMaxDelaySet() && !n.slotDistributionSet() {
@@ -236,18 +252,50 @@ func (e *Executor) executeNetem(f *NetemForm) error {
 	if f.LossECN {
 		cmdArr = append(cmdArr, "ecn")
 	}
-	cmdArr = append(cmdArr, "corrupt", fmt.Sprintf("%f%%", f.CorruptPercent), fmt.Sprintf("%f%%", f.CorruptCorrelationPercent))
-	cmdArr = append(cmdArr, "duplicate", fmt.Sprintf("%f%%", f.DuplicatePercent), fmt.Sprintf("%f%%", f.DuplicateCorrelationPercent))
-	cmdArr = append(cmdArr, "reorder", fmt.Sprintf("%f%%", f.ReorderPercent), fmt.Sprintf("%f%%", f.ReorderCorrelationPercent), "gap", fmt.Sprintf("%d", int64(f.ReorderGapDistance)))
+	cmdArr = append(
+		cmdArr,
+		"corrupt",
+		fmt.Sprintf("%f%%", f.CorruptPercent),
+		fmt.Sprintf("%f%%", f.CorruptCorrelationPercent),
+	)
+	cmdArr = append(
+		cmdArr,
+		"duplicate",
+		fmt.Sprintf("%f%%", f.DuplicatePercent),
+		fmt.Sprintf("%f%%", f.DuplicateCorrelationPercent),
+	)
+	cmdArr = append(
+		cmdArr,
+		"reorder",
+		fmt.Sprintf("%f%%", f.ReorderPercent),
+		fmt.Sprintf("%f%%", f.ReorderCorrelationPercent),
+		"gap",
+		fmt.Sprintf("%d", int64(f.ReorderGapDistance)),
+	)
 	cmdArr = append(cmdArr, "rate", fmt.Sprintf("%fkbit", f.RateKbps))
 	if f.slotDistributionSet() || f.slotMinMaxDelaySet() {
 		cmdArr = append(cmdArr, "slot")
 		if f.slotMinMaxDelaySet() {
-			cmdArr = append(cmdArr, fmt.Sprintf("%fms", f.SlotMinDelayMs), fmt.Sprintf("%fms", f.SlotMaxDelayMs))
+			cmdArr = append(
+				cmdArr,
+				fmt.Sprintf("%fms", f.SlotMinDelayMs),
+				fmt.Sprintf("%fms", f.SlotMaxDelayMs),
+			)
 		} else if f.slotDistributionSet() {
-			cmdArr = append(cmdArr, "distribution", f.SlotDistribution, fmt.Sprintf("%fms", f.SlotDelayJitterMs))
+			cmdArr = append(
+				cmdArr,
+				"distribution",
+				f.SlotDistribution,
+				fmt.Sprintf("%fms", f.SlotDelayJitterMs),
+			)
 		}
-		cmdArr = append(cmdArr, "packets", fmt.Sprintf("%d", f.SlotPackets), "bytes", fmt.Sprintf("%d", f.SlotBytes))
+		cmdArr = append(
+			cmdArr,
+			"packets",
+			fmt.Sprintf("%d", f.SlotPackets),
+			"bytes",
+			fmt.Sprintf("%d", f.SlotBytes),
+		)
 	}
 	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
 	logger.GetInstance().Info("setNetem>" + strings.Join(cmd.Args, " "))

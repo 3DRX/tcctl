@@ -46,7 +46,10 @@ func main() {
 		}
 		retVal := make(map[string][]int64)
 		for _, counter := range counters {
-			retVal[counter.Name] = []int64{int64(counter.BytesSent), int64(counter.BytesRecv)}
+			retVal[counter.Name] = []int64{
+				int64(counter.BytesSent),
+				int64(counter.BytesRecv),
+			}
 		}
 		c.JSON(200, retVal)
 	})
