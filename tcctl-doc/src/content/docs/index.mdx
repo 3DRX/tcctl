@@ -1,0 +1,39 @@
+---
+title: Welcome to tcctl
+description: A webui of tc-netem.
+template: splash
+hero:
+  tagline: A webui of tc-netem that's beautiful and functional!
+  actions:
+    - text: Get Started
+      link: /guides/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: Visit the Github repo
+      link: https://github.com/3DRX/tcctl
+      icon: github
+pagefind: false
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import darkImage from '../../../../README.assets/manual-mode.png';
+import lightImage from '../../../../README.assets/trace-mode.png';
+
+<CardGrid stagger>
+	<Card title="Manual control" icon="seti:bicep">
+		You can manually control shaping rules for each network interface.
+	</Card>
+	<Card title="Trace file control" icon="document">
+		You can also upload a text file to describe a network changing pattern.
+	</Card>
+	<Card title="Runs on any Linux system" icon="linux">
+		Tcctl only depends one native package: tc-netem.
+	</Card>
+	<Card title="Read the docs" icon="open-book">
+		Learn more about tc and netem in [the reference](/reference/tc-netem).
+	</Card>
+</CardGrid>
+
+<Image src={darkImage} alt="manual-mode"/>
+<Image src={lightImage} alt="trace-mode"/>
