@@ -210,6 +210,8 @@ func (e *Executor) executeNetem(f *NetemForm) error {
 		"dev",
 		e.nic,
 		"root",
+		"handle",
+		"1:",
 		"netem",
 		"delay",
 		fmt.Sprintf("%fms", f.DelayMs),
