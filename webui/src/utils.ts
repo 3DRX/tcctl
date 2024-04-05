@@ -98,6 +98,11 @@ enum NetemDistribution {
   paretonormal = "paretonormal",
 }
 
+export enum QueueType {
+  pfifo = "pfifo",
+  bfifo = "bfifo",
+}
+
 export type NetemForm = {
   nic: string;
   delayMs: number;
@@ -130,9 +135,13 @@ export type NetemForm = {
   slotDelayJitterMs?: number;
   slotPackets?: number;
   slotBytes?: number;
+  queueType?: QueueType;
+  queueLimitBytes?: number;
+  queueLimitPackets?: number;
 };
 
 export async function putNetem(data: NetemForm) {
+  console.log(data);
   const response = await fetch(
     `http://${window.location.hostname}:${SERVERPORT}/api/v2/netem`,
     {

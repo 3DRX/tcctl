@@ -46,6 +46,7 @@ export interface LossValue {
 
 export type Rate = "Mbps" | "Kbps";
 export type Delay = "ms" | "s";
+export type Buffer = "packets" | "Kbytes";
 
 export interface RateValue {
   number?: number;
@@ -55,6 +56,11 @@ export interface RateValue {
 export interface DelayValue {
   number?: number;
   unit?: Delay;
+}
+
+export interface QueueValue {
+  number?: number;
+  unit?: Buffer;
 }
 
 export interface PercentageValue {
@@ -69,6 +75,11 @@ export interface RateInputProps {
 export interface MsInputProps {
   value?: DelayValue;
   onChange?: (value: DelayValue) => void;
+}
+
+export interface QueueInputProps {
+  value?: QueueValue;
+  onChange?: (value: QueueValue) => void;
 }
 
 export interface LossInputProps {
@@ -93,6 +104,13 @@ export const checkGe0 = (_: any, value: { number: number }) => {
     return Promise.resolve();
   }
   return Promise.reject(new Error("must be >= 0"));
+};
+
+export const checkGe100 = (_: any, value: { number: number }) => {
+  if (value.number >= 100) {
+    return Promise.resolve();
+  }
+  return Promise.reject(new Error("must be >= 100"));
 };
 
 export const formItemStyle: React.CSSProperties = {

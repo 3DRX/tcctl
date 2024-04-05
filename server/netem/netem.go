@@ -45,6 +45,9 @@ type NetemForm struct {
 	SlotDelayJitterMs            float64 `json:"slotDelayJitterMs"`
 	SlotPackets                  int64   `json:"slotPackets"`
 	SlotBytes                    int64   `json:"slotBytes"`
+	QueueType                    string  `json:"queueType"`
+	QueueLimitBytes              int64   `json:"queueLimitBytes"`
+	QueueLimitPackets            int64   `json:"queueLimitPackets"`
 }
 
 func (n *NetemForm) lossRandomSet() bool {
@@ -119,17 +122,38 @@ func (n *NetemForm) validate() error {
 	if n.slotMinMaxDelaySet() && !n.slotDistributionSet() {
 		return fmt.Errorf("SlotDistribution must be set if SlotMinDelayMs or SlotMaxDelayMs is set")
 	}
+	switch n.QueueType {
+	case "pfifo":
+		if n.QueueLimitBytes != 0 {
+			return fmt.Errorf("QueueLimitBytes is not supported by pfifo")
+		}
+	case "bfifo":
+		if n.QueueLimitPackets != 0 {
+			return fmt.Errorf("QueueLimitPackets is not supported by bfifo")
+		}
+	case "":
+		// no queue rule set
+	default:
+		return fmt.Errorf("unknown QueueType: " + n.QueueType)
+	}
 	return nil
 }
 
-type Executor struct {
+type NetemExecutor struct {
+	nic      string
+	lastForm *NetemForm
+	first    bool
+}
+
+type QueueExecutor struct {
 	nic      string
 	lastForm *NetemForm
 	first    bool
 }
 
 type Controller struct {
-	NICExecutorMap map[string]*Executor
+	NICNetemExecutorMap map[string]*NetemExecutor
+	NICQueueExecutorMap map[string]*QueueExecutor
 }
 
 var controller *Controller
@@ -137,7 +161,8 @@ var controller *Controller
 func init() {
 	controller = &Controller{}
 	logger.GetInstance().Info("init controller")
-	controller.NICExecutorMap = make(map[string]*Executor)
+	controller.NICNetemExecutorMap = make(map[string]*NetemExecutor)
+	controller.NICQueueExecutorMap = make(map[string]*QueueExecutor)
 }
 
 func GetController() *Controller {
@@ -146,7 +171,7 @@ func GetController() *Controller {
 
 func (c *Controller) UnsetAllNetem() []string {
 	ret := make([]string, 0)
-	for _, executor := range c.NICExecutorMap {
+	for _, executor := range c.NICNetemExecutorMap {
 		err := executor.unsetNetem()
 		if err != nil {
 			ret = append(ret, err.Error())
@@ -160,23 +185,23 @@ func (c *Controller) ExecuteNetem(form *NetemForm) error {
 	if err != nil {
 		return err
 	}
-	if executor, ok := c.NICExecutorMap[form.NIC]; ok {
+	if executor, ok := c.NICNetemExecutorMap[form.NIC]; ok {
 		err := executor.executeNetem(form)
 		if err != nil {
 			return err
 		}
 		executor.lastForm = form
 	} else {
-		executor := &Executor{
+		executor := &NetemExecutor{
 			nic:   form.NIC,
 			first: true,
 		}
-		runtime.SetFinalizer(executor, func(executor *Executor) {
+		runtime.SetFinalizer(executor, func(executor *NetemExecutor) {
 			executor.unsetNetem()
 		})
-		c.NICExecutorMap[form.NIC] = executor
+		c.NICNetemExecutorMap[form.NIC] = executor
 		logger := logger.GetInstance()
-		logger.Info("create new executor " + form.NIC)
+		logger.Info("create new netem executor " + form.NIC)
 		initErr := executor.unsetNetem()
 		if initErr != nil {
 			logger.Warn("clear netem error: " + initErr.Error())
@@ -187,10 +212,90 @@ func (c *Controller) ExecuteNetem(form *NetemForm) error {
 		}
 		executor.lastForm = form
 	}
+	if executor, ok := c.NICQueueExecutorMap[form.NIC]; ok {
+		err := executor.executeQueue(form)
+		if err != nil {
+			return err
+		}
+		executor.lastForm = form
+	} else {
+		executor := &QueueExecutor{
+			nic:   form.NIC,
+			first: true,
+		}
+		c.NICQueueExecutorMap[form.NIC] = executor
+		logger := logger.GetInstance()
+		logger.Info("create new queue executor " + form.NIC)
+		initErr := executor.unsetQueue()
+		if initErr != nil {
+			logger.Warn("clear queue error: " + initErr.Error())
+		}
+		err := executor.executeQueue(form)
+		if err != nil {
+			return err
+		}
+		executor.lastForm = form
+	}
 	return nil
 }
 
-func (e *Executor) executeNetem(f *NetemForm) error {
+func (e *QueueExecutor) executeQueue(f *NetemForm) error {
+	if f.DelayMs < 0 || f.LossRandomPercent < 0 || f.RateKbps < 0 {
+		e.first = true
+		return nil
+	}
+	l := logger.GetInstance()
+	if f.QueueType == "" {
+		l.Info("no queue rule set")
+		return nil
+	}
+	operation := "change"
+	if e.first {
+		operation = "add"
+		e.first = false
+	} else if e.lastForm.QueueType != f.QueueType {
+		operation = "add"
+		err := e.unsetQueue()
+		e.first = false
+		if err != nil {
+			return err
+		}
+	}
+	cmdArr := []string{
+		"tc",
+		"qdisc",
+		operation,
+		"dev",
+		e.nic,
+		"parent",
+		"1:",
+		"handle",
+		"2:",
+	}
+	if f.QueueType == "pfifo" {
+		cmdArr = append(cmdArr, "pfifo", "limit", fmt.Sprintf("%d", f.QueueLimitPackets))
+	} else if f.QueueType == "bfifo" {
+		cmdArr = append(cmdArr, "bfifo", "limit", fmt.Sprintf("%d", f.QueueLimitBytes))
+	}
+	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
+	l.Info("setQueue>" + strings.Join(cmd.Args, " "))
+	return executeCommand(cmd)
+}
+
+func (e *QueueExecutor) unsetQueue() error {
+	if e.first {
+		return nil
+	}
+	cmd := exec.Command("tc", "qdisc", "del", "dev", e.nic, "parent", "1:")
+	logger.GetInstance().Info("unsetQueue>" + strings.Join(cmd.Args, " "))
+	err := executeCommand(cmd)
+	if err == nil {
+		e.first = true
+	}
+	return err
+}
+
+func (e *NetemExecutor) executeNetem(f *NetemForm) error {
 	if f.DelayMs < 0 || f.LossRandomPercent < 0 || f.RateKbps < 0 {
 		err := e.unsetNetem()
 		if err != nil {
@@ -304,7 +409,7 @@ func (e *Executor) executeNetem(f *NetemForm) error {
 	return executeCommand(cmd)
 }
 
-func (e *Executor) unsetNetem() error {
+func (e *NetemExecutor) unsetNetem() error {
 	if e.first { // no need to unset
 		return nil
 	}
