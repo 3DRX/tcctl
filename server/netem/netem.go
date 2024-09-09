@@ -279,7 +279,7 @@ func (e *QueueExecutor) executeQueue(f *NetemForm) error {
 	}
 	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
 	l.Info("setQueue>" + strings.Join(cmd.Args, " "))
-	return executeCommand(cmd)
+	return netemExecuteCommand(cmd)
 }
 
 func (e *QueueExecutor) unsetQueue() error {
@@ -288,7 +288,7 @@ func (e *QueueExecutor) unsetQueue() error {
 	}
 	cmd := exec.Command("tc", "qdisc", "del", "dev", e.nic, "parent", "1:")
 	logger.GetInstance().Info("unsetQueue>" + strings.Join(cmd.Args, " "))
-	err := executeCommand(cmd)
+	err := netemExecuteCommand(cmd)
 	if err == nil {
 		e.first = true
 	}
@@ -406,7 +406,7 @@ func (e *NetemExecutor) executeNetem(f *NetemForm) error {
 	}
 	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
 	logger.GetInstance().Info("setNetem>" + strings.Join(cmd.Args, " "))
-	return executeCommand(cmd)
+	return netemExecuteCommand(cmd)
 }
 
 func (e *NetemExecutor) unsetNetem() error {
@@ -415,14 +415,14 @@ func (e *NetemExecutor) unsetNetem() error {
 	}
 	cmd := exec.Command("tc", "qdisc", "del", "dev", e.nic, "root")
 	logger.GetInstance().Info("unsetNetem>" + strings.Join(cmd.Args, " "))
-	err := executeCommand(cmd)
+	err := netemExecuteCommand(cmd)
 	if err == nil {
 		e.first = true
 	}
 	return err
 }
 
-func executeCommand(cmd *exec.Cmd) error {
+func netemExecuteCommand(cmd *exec.Cmd) error {
 	buf := new(bytes.Buffer)
 	cmd.Stdout = buf
 	cmd.Stderr = buf
