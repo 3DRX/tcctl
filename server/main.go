@@ -46,9 +46,26 @@ func main() {
 		}
 		retVal := make(map[string][]int64)
 		for _, counter := range counters {
-			retVal[counter.Name] = []int64{int64(counter.BytesSent), int64(counter.BytesRecv)}
+			retVal[counter.Name] = []int64{
+				int64(counter.BytesSent),
+				int64(counter.BytesRecv),
+			}
 		}
 		c.JSON(200, retVal)
+	})
+
+	r.POST("/api/v2/bufferstate", func(c *gin.Context) {
+		var form netem.BufferStateForm
+		if err := c.Bind(&form); err != nil {
+			c.JSON(400, err.Error())
+			return
+		}
+		bufferState, err := netem.GetBufferState(&form)
+		if err != nil {
+			c.JSON(500, err.Error())
+			return
+		}
+		c.JSON(200, bufferState)
 	})
 
 	r.PUT("/api/v2/netem", func(c *gin.Context) {

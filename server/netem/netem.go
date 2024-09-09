@@ -45,18 +45,29 @@ type NetemForm struct {
 	SlotDelayJitterMs            float64 `json:"slotDelayJitterMs"`
 	SlotPackets                  int64   `json:"slotPackets"`
 	SlotBytes                    int64   `json:"slotBytes"`
+	QueueType                    string  `json:"queueType"`
+	QueueLimitBytes              int64   `json:"queueLimitBytes"`
+	QueueLimitPackets            int64   `json:"queueLimitPackets"`
 }
 
 func (n *NetemForm) lossRandomSet() bool {
-	return n.LossRandomPercent != 0 || n.LossRandomCorrelationPercent != 0
+	return n.LossRandomPercent != 0 ||
+		n.LossRandomCorrelationPercent != 0
 }
 
 func (n *NetemForm) lossStateSet() bool {
-	return n.LossStateP13 != 0 || n.LossStateP31 != 0 || n.LossStateP32 != 0 || n.LossStateP23 != 0 || n.LossStateP14 != 0
+	return n.LossStateP13 != 0 ||
+		n.LossStateP31 != 0 ||
+		n.LossStateP32 != 0 ||
+		n.LossStateP23 != 0 ||
+		n.LossStateP14 != 0
 }
 
 func (n *NetemForm) lossGEModelSet() bool {
-	return n.LossGEModelPercent != 0 || n.LossGEModelR != 0 || n.LossGEModel1H != 0 || n.LossGEModel1K != 0
+	return n.LossGEModelPercent != 0 ||
+		n.LossGEModelR != 0 ||
+		n.LossGEModel1H != 0 ||
+		n.LossGEModel1K != 0
 }
 
 func (n *NetemForm) slotMinMaxDelaySet() bool {
@@ -71,7 +82,11 @@ func (n *NetemForm) validate() error {
 	if n.NIC == "" {
 		return fmt.Errorf("NIC is required")
 	}
-	if n.DelayDistribution != "uniform" && n.DelayDistribution != "normal" && n.DelayDistribution != "pareto" && n.DelayDistribution != "paretonormal" && n.DelayDistribution != "" {
+	if n.DelayDistribution != "uniform" &&
+		n.DelayDistribution != "normal" &&
+		n.DelayDistribution != "pareto" &&
+		n.DelayDistribution != "paretonormal" &&
+		n.DelayDistribution != "" {
 		return fmt.Errorf("DelayDistribution must be one of uniform, normal, pareto, paretonormal")
 	}
 	// loss pattern can only be one of ["random", "state", "gemodel"]
@@ -97,23 +112,48 @@ func (n *NetemForm) validate() error {
 			return fmt.Errorf("state loss and gemodel loss cannot be set at the same time")
 		}
 	}
-	if n.SlotDistribution != "uniform" && n.SlotDistribution != "normal" && n.SlotDistribution != "pareto" && n.SlotDistribution != "paretonormal" && n.SlotDistribution != "" {
+	if n.SlotDistribution != "uniform" &&
+		n.SlotDistribution != "normal" &&
+		n.SlotDistribution != "pareto" &&
+		n.SlotDistribution != "paretonormal" &&
+		n.SlotDistribution != "" {
 		return fmt.Errorf("SlotDistribution must be one of uniform, normal, pareto, paretonormal")
 	}
 	if n.slotMinMaxDelaySet() && !n.slotDistributionSet() {
 		return fmt.Errorf("SlotDistribution must be set if SlotMinDelayMs or SlotMaxDelayMs is set")
 	}
+	switch n.QueueType {
+	case "pfifo":
+		if n.QueueLimitBytes != 0 {
+			return fmt.Errorf("QueueLimitBytes is not supported by pfifo")
+		}
+	case "bfifo":
+		if n.QueueLimitPackets != 0 {
+			return fmt.Errorf("QueueLimitPackets is not supported by bfifo")
+		}
+	case "":
+		// no queue rule set
+	default:
+		return fmt.Errorf("unknown QueueType: " + n.QueueType)
+	}
 	return nil
 }
 
-type Executor struct {
+type NetemExecutor struct {
+	nic      string
+	lastForm *NetemForm
+	first    bool
+}
+
+type QueueExecutor struct {
 	nic      string
 	lastForm *NetemForm
 	first    bool
 }
 
 type Controller struct {
-	NICExecutorMap map[string]*Executor
+	NICNetemExecutorMap map[string]*NetemExecutor
+	NICQueueExecutorMap map[string]*QueueExecutor
 }
 
 var controller *Controller
@@ -121,7 +161,8 @@ var controller *Controller
 func init() {
 	controller = &Controller{}
 	logger.GetInstance().Info("init controller")
-	controller.NICExecutorMap = make(map[string]*Executor)
+	controller.NICNetemExecutorMap = make(map[string]*NetemExecutor)
+	controller.NICQueueExecutorMap = make(map[string]*QueueExecutor)
 }
 
 func GetController() *Controller {
@@ -130,7 +171,7 @@ func GetController() *Controller {
 
 func (c *Controller) UnsetAllNetem() []string {
 	ret := make([]string, 0)
-	for _, executor := range c.NICExecutorMap {
+	for _, executor := range c.NICNetemExecutorMap {
 		err := executor.unsetNetem()
 		if err != nil {
 			ret = append(ret, err.Error())
@@ -144,23 +185,23 @@ func (c *Controller) ExecuteNetem(form *NetemForm) error {
 	if err != nil {
 		return err
 	}
-	if executor, ok := c.NICExecutorMap[form.NIC]; ok {
+	if executor, ok := c.NICNetemExecutorMap[form.NIC]; ok {
 		err := executor.executeNetem(form)
 		if err != nil {
 			return err
 		}
 		executor.lastForm = form
 	} else {
-		executor := &Executor{
+		executor := &NetemExecutor{
 			nic:   form.NIC,
 			first: true,
 		}
-		runtime.SetFinalizer(executor, func(executor *Executor) {
+		runtime.SetFinalizer(executor, func(executor *NetemExecutor) {
 			executor.unsetNetem()
 		})
-		c.NICExecutorMap[form.NIC] = executor
+		c.NICNetemExecutorMap[form.NIC] = executor
 		logger := logger.GetInstance()
-		logger.Info("create new executor " + form.NIC)
+		logger.Info("create new netem executor " + form.NIC)
 		initErr := executor.unsetNetem()
 		if initErr != nil {
 			logger.Warn("clear netem error: " + initErr.Error())
@@ -171,10 +212,90 @@ func (c *Controller) ExecuteNetem(form *NetemForm) error {
 		}
 		executor.lastForm = form
 	}
+	if executor, ok := c.NICQueueExecutorMap[form.NIC]; ok {
+		err := executor.executeQueue(form)
+		if err != nil {
+			return err
+		}
+		executor.lastForm = form
+	} else {
+		executor := &QueueExecutor{
+			nic:   form.NIC,
+			first: true,
+		}
+		c.NICQueueExecutorMap[form.NIC] = executor
+		logger := logger.GetInstance()
+		logger.Info("create new queue executor " + form.NIC)
+		initErr := executor.unsetQueue()
+		if initErr != nil {
+			logger.Warn("clear queue error: " + initErr.Error())
+		}
+		err := executor.executeQueue(form)
+		if err != nil {
+			return err
+		}
+		executor.lastForm = form
+	}
 	return nil
 }
 
-func (e *Executor) executeNetem(f *NetemForm) error {
+func (e *QueueExecutor) executeQueue(f *NetemForm) error {
+	if f.DelayMs < 0 || f.LossRandomPercent < 0 || f.RateKbps < 0 {
+		e.first = true
+		return nil
+	}
+	l := logger.GetInstance()
+	if f.QueueType == "" {
+		l.Info("no queue rule set")
+		return nil
+	}
+	operation := "change"
+	if e.first {
+		operation = "add"
+		e.first = false
+	} else if e.lastForm.QueueType != f.QueueType {
+		operation = "add"
+		err := e.unsetQueue()
+		e.first = false
+		if err != nil {
+			return err
+		}
+	}
+	cmdArr := []string{
+		"tc",
+		"qdisc",
+		operation,
+		"dev",
+		e.nic,
+		"parent",
+		"1:",
+		"handle",
+		"2:",
+	}
+	if f.QueueType == "pfifo" {
+		cmdArr = append(cmdArr, "pfifo", "limit", fmt.Sprintf("%d", f.QueueLimitPackets))
+	} else if f.QueueType == "bfifo" {
+		cmdArr = append(cmdArr, "bfifo", "limit", fmt.Sprintf("%d", f.QueueLimitBytes))
+	}
+	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
+	l.Info("setQueue>" + strings.Join(cmd.Args, " "))
+	return netemExecuteCommand(cmd)
+}
+
+func (e *QueueExecutor) unsetQueue() error {
+	if e.first {
+		return nil
+	}
+	cmd := exec.Command("tc", "qdisc", "del", "dev", e.nic, "parent", "1:")
+	logger.GetInstance().Info("unsetQueue>" + strings.Join(cmd.Args, " "))
+	err := netemExecuteCommand(cmd)
+	if err == nil {
+		e.first = true
+	}
+	return err
+}
+
+func (e *NetemExecutor) executeNetem(f *NetemForm) error {
 	if f.DelayMs < 0 || f.LossRandomPercent < 0 || f.RateKbps < 0 {
 		err := e.unsetNetem()
 		if err != nil {
@@ -194,6 +315,8 @@ func (e *Executor) executeNetem(f *NetemForm) error {
 		"dev",
 		e.nic,
 		"root",
+		"handle",
+		"1:",
 		"netem",
 		"delay",
 		fmt.Sprintf("%fms", f.DelayMs),
@@ -236,38 +359,70 @@ func (e *Executor) executeNetem(f *NetemForm) error {
 	if f.LossECN {
 		cmdArr = append(cmdArr, "ecn")
 	}
-	cmdArr = append(cmdArr, "corrupt", fmt.Sprintf("%f%%", f.CorruptPercent), fmt.Sprintf("%f%%", f.CorruptCorrelationPercent))
-	cmdArr = append(cmdArr, "duplicate", fmt.Sprintf("%f%%", f.DuplicatePercent), fmt.Sprintf("%f%%", f.DuplicateCorrelationPercent))
-	cmdArr = append(cmdArr, "reorder", fmt.Sprintf("%f%%", f.ReorderPercent), fmt.Sprintf("%f%%", f.ReorderCorrelationPercent), "gap", fmt.Sprintf("%d", int64(f.ReorderGapDistance)))
+	cmdArr = append(
+		cmdArr,
+		"corrupt",
+		fmt.Sprintf("%f%%", f.CorruptPercent),
+		fmt.Sprintf("%f%%", f.CorruptCorrelationPercent),
+	)
+	cmdArr = append(
+		cmdArr,
+		"duplicate",
+		fmt.Sprintf("%f%%", f.DuplicatePercent),
+		fmt.Sprintf("%f%%", f.DuplicateCorrelationPercent),
+	)
+	cmdArr = append(
+		cmdArr,
+		"reorder",
+		fmt.Sprintf("%f%%", f.ReorderPercent),
+		fmt.Sprintf("%f%%", f.ReorderCorrelationPercent),
+		"gap",
+		fmt.Sprintf("%d", int64(f.ReorderGapDistance)),
+	)
 	cmdArr = append(cmdArr, "rate", fmt.Sprintf("%fkbit", f.RateKbps))
 	if f.slotDistributionSet() || f.slotMinMaxDelaySet() {
 		cmdArr = append(cmdArr, "slot")
 		if f.slotMinMaxDelaySet() {
-			cmdArr = append(cmdArr, fmt.Sprintf("%fms", f.SlotMinDelayMs), fmt.Sprintf("%fms", f.SlotMaxDelayMs))
+			cmdArr = append(
+				cmdArr,
+				fmt.Sprintf("%fms", f.SlotMinDelayMs),
+				fmt.Sprintf("%fms", f.SlotMaxDelayMs),
+			)
 		} else if f.slotDistributionSet() {
-			cmdArr = append(cmdArr, "distribution", f.SlotDistribution, fmt.Sprintf("%fms", f.SlotDelayJitterMs))
+			cmdArr = append(
+				cmdArr,
+				"distribution",
+				f.SlotDistribution,
+				fmt.Sprintf("%fms", f.SlotDelayJitterMs),
+			)
 		}
-		cmdArr = append(cmdArr, "packets", fmt.Sprintf("%d", f.SlotPackets), "bytes", fmt.Sprintf("%d", f.SlotBytes))
+		cmdArr = append(
+			cmdArr,
+			"packets",
+			fmt.Sprintf("%d", f.SlotPackets),
+			"bytes",
+			fmt.Sprintf("%d", f.SlotBytes),
+		)
 	}
 	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
 	logger.GetInstance().Info("setNetem>" + strings.Join(cmd.Args, " "))
-	return executeCommand(cmd)
+	return netemExecuteCommand(cmd)
 }
 
-func (e *Executor) unsetNetem() error {
+func (e *NetemExecutor) unsetNetem() error {
 	if e.first { // no need to unset
 		return nil
 	}
 	cmd := exec.Command("tc", "qdisc", "del", "dev", e.nic, "root")
 	logger.GetInstance().Info("unsetNetem>" + strings.Join(cmd.Args, " "))
-	err := executeCommand(cmd)
+	err := netemExecuteCommand(cmd)
 	if err == nil {
 		e.first = true
 	}
 	return err
 }
 
-func executeCommand(cmd *exec.Cmd) error {
+func netemExecuteCommand(cmd *exec.Cmd) error {
 	buf := new(bytes.Buffer)
 	cmd.Stdout = buf
 	cmd.Stderr = buf

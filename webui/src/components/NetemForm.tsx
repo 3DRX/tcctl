@@ -1,6 +1,6 @@
 import { Button, Form, Input, Select } from "antd";
 import React, { useState } from "react";
-import { putNetem } from "../utils";
+import { QueueType, putNetem } from "../utils";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { LossInput } from "./LossInput";
 import {
@@ -11,12 +11,14 @@ import {
   RateInputProps,
   RateValue,
   checkGe0,
+  checkGe100,
   checkPercentage,
   formItemStyle,
   getOnFloatNumberChange,
 } from "./FormUtils";
 import { NICPlaceholder } from "../consts";
 import { MsInput } from "./FormSubComponents/MsInput";
+import { QueueInput } from "./FormSubComponents/QueueInput";
 
 const { Option } = Select;
 
@@ -59,6 +61,10 @@ const defalutValues = {
   rate: {
     number: 20,
     unit: "Mbps",
+  },
+  queue: {
+    number: 1000,
+    unit: "Kbytes",
   },
 };
 
@@ -183,6 +189,12 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
           values.rate.unit === "Kbps"
             ? values.rate.number
             : values.rate.number * 1024,
+        queueType:
+          values.queue.unit === "packets" ? QueueType.pfifo : QueueType.bfifo,
+        queueLimitBytes:
+          values.queue.unit === "Kbytes" ? values.queue.number * 1024 : 0,
+        queueLimitPackets:
+          values.queue.unit === "packets" ? values.queue.number : 0,
       }).catch((err: Error) => {
         api.error({
           message: "Error",
@@ -387,6 +399,14 @@ const NetemForm: React.FC<NetemFormProps> = ({ nic, api }) => {
           style={formItemStyle}
         >
           <LossInput />
+        </Form.Item>
+        <Form.Item
+          name="queue"
+          label="Queue"
+          rules={[{ validator: checkGe100 }]}
+          style={formItemStyle}
+        >
+          <QueueInput />
         </Form.Item>
         <div
           style={{
