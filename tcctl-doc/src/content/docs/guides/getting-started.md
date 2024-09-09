@@ -12,7 +12,7 @@ The following operations should be taken as root user.
 1. Download [release zip](https://github.com/3DRX/tcctl/releases/latest)
 on OpenWrt and decompress it to /root/tcctl
 2. Install [tc](https://man7.org/linux/man-pages/man8/tc.8.html), for example, on OpenWrt using opkg:
-```
+```sh
 opkg update && opkg install tc-full
 ```
 3. Reboot
