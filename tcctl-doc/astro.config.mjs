@@ -11,7 +11,10 @@ export default defineConfig({
       sidebar: [
         {
           label: "Guides",
-          items: [{ label: "Example Guide", link: "/guides/getting-started/" }],
+          items: [
+            { label: "Getting Started", link: "/guides/getting-started/" },
+            { label: "Development Setup", link: "/guides/dev-setup/" },
+          ],
         },
         {
           label: "Reference",
