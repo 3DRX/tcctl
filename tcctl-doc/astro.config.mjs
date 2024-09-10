@@ -2,6 +2,7 @@ import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 
 export default defineConfig({
+  site: "https://tcctl.3drx.top/",
   integrations: [
     starlight({
       title: "tcctl",
@@ -28,6 +29,9 @@ export default defineConfig({
         },
       ],
       customCss: ["./src/styles/custom.css"],
+      components: {
+        Head: "./src/components/Head.astro",
+      },
     }),
   ],
 });
