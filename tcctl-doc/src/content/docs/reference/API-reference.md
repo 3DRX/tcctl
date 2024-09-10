@@ -108,10 +108,6 @@ example
 
 ## POST `/api/v2/bufferstate`
 
-:::note
-WIP
-:::
-
 ### request
 
 | name | type   | description            |
@@ -120,26 +116,46 @@ WIP
 
 ### response
 
-| name           | type | description |
-|----------------|------|-------------|
-| sentBytes      | int  |             |
-| sentPackets    | int  |             |
-| droppedPackets | int  |             |
-| overlimits     | int  |             |
-| requeues       | int  |             |
-| backlogBytes   | int  |             |
-| backlogPackets | int  |             |
+| name           | type   | description                                     |
+|----------------|--------|-------------------------------------------------|
+| qdiscName      | string | qdisc the buffer belongs to                     |
+| parent         | string | parent qdisc id                                 |
+| rule           | string |                                                 |
+| sentBytes      | int    | bytes sent through this buffer                  |
+| sentPackets    | int    | packets sent through this buffer                |
+| droppedPackets | int    | packets dropped by this buffer                  |
+| overlimits     | int    | packets dropped due to overlimit by this buffer |
+| requeues       | int    | packets re-entered the queue                    |
+| backlogBytes   | int    | bytes in buffer                                 |
+| backlogPackets | int    | bytes in buffer                                 |
 
 example
 
 ```json
-{
-  "sentBytes": 0,
-  "sentPackets": 0,
-  "droppedPackets": 0,
-  "overlimits": 0,
-  "requeues": 0,
-  "backlogBytes": 0,
-  "backlogPackets": 0
-}
+[
+  {
+    "qdiscName": "netem 1",
+    "parent": "",
+    "rule": "root refcnt 2 limit 1000 rate 2048Kbit",
+    "sentBytes": 1310818,
+    "sentPackets": 183,
+    "droppedPackets": 0,
+    "overlimits": 0,
+    "requeues": 0,
+    "backlogBytes": 757724,
+    "backlogPackets": 40
+  },
+  {
+    "qdiscName": "bfifo 2",
+    "parent": "1",
+    "rule": "limit 1000Kb",
+    "sentBytes": 1310818,
+    "sentPackets": 183,
+    "droppedPackets": 0,
+    "overlimits": 0,
+    "requeues": 0,
+    "backlogBytes": 0,
+    "backlogPackets": 0
+  }
+]
 ```
