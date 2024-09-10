@@ -15,6 +15,8 @@ type BufferStateForm struct {
 
 type BufferState struct {
 	QdiscName      string `json:"qdiscName"`
+	Parent         string `json:"parent"`
+	Rule           string `json:"rule"`
 	SentBytes      int64  `json:"sentBytes"`
 	SentPackets    int64  `json:"sentPackets"`
 	DroppedPackets int64  `json:"droppedPackets"`
@@ -26,11 +28,27 @@ type BufferState struct {
 
 func parseOneBufferState(lines []string) (*BufferState, error) {
 	result := &BufferState{}
+
 	qdiscFields := strings.Fields(lines[0])
+
 	qdiscName := qdiscFields[1]
 	qdiscIndex := qdiscFields[2]
 	qdiscIndex = qdiscIndex[:len(qdiscIndex)-1]
 	result.QdiscName = qdiscName + " " + qdiscIndex
+
+	haveParent := len(qdiscFields) > 3 && qdiscFields[3] == "parent"
+	if haveParent {
+		parent := qdiscFields[4]
+		parent = parent[:len(parent)-1]
+		result.Parent = parent
+		rules := qdiscFields[5:]
+		result.Rule = strings.Join(rules, " ")
+	} else {
+		result.Parent = ""
+		rules := qdiscFields[3:]
+		result.Rule = strings.Join(rules, " ")
+	}
+
 	firstFields := strings.Fields(lines[1])
 	logger.GetInstance().Info(fmt.Sprintf("firstFields: %v", firstFields))
 	sentBytes, err := strconv.ParseInt(firstFields[1], 10, 64)
