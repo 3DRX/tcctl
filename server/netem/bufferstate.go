@@ -14,44 +14,30 @@ type BufferStateForm struct {
 }
 
 type BufferState struct {
-	SentBytes      int64 `json:"sentBytes"`
-	SentPackets    int64 `json:"sentPackets"`
-	DroppedPackets int64 `json:"droppedPackets"`
-	Overlimits     int64 `json:"overlimits"`
-	Requeues       int64 `json:"requeues"`
-	BacklogBytes   int64 `json:"backlogBytes"`
-	BacklogPackets int64 `json:"backlogPackets"`
+	QdiscName      string `json:"qdiscName"`
+	SentBytes      int64  `json:"sentBytes"`
+	SentPackets    int64  `json:"sentPackets"`
+	DroppedPackets int64  `json:"droppedPackets"`
+	Overlimits     int64  `json:"overlimits"`
+	Requeues       int64  `json:"requeues"`
+	BacklogBytes   int64  `json:"backlogBytes"`
+	BacklogPackets int64  `json:"backlogPackets"`
 }
 
-func GetBufferState(form *BufferStateForm) (*BufferState, error) {
-	// call command:
-	cmdArr := []string{
-		"tc",
-		"-s",
-		"-d",
-		"qdisc",
-		"show",
-		"dev",
-		form.NIC,
-	}
-	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
-	logger.GetInstance().Info("getBufferState>" + strings.Join(cmd.Args, " "))
-	outStr, err := bufferStateExecuteCommand(cmd)
-	if err != nil {
-		return nil, err
-	}
-	// out Str in format:
-	//  Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0)
-	//  backlog 0b 0p requeues 0
+func parseOneBufferState(lines []string) (*BufferState, error) {
 	result := &BufferState{}
-	// parse outStr
-	lines := strings.Split(outStr, "\n")
+	qdiscFields := strings.Fields(lines[0])
+	qdiscName := qdiscFields[1]
+	qdiscIndex := qdiscFields[2]
+	qdiscIndex = qdiscIndex[:len(qdiscIndex)-1]
+	result.QdiscName = qdiscName + " " + qdiscIndex
 	firstFields := strings.Fields(lines[1])
 	logger.GetInstance().Info(fmt.Sprintf("firstFields: %v", firstFields))
-	result.SentBytes, err = strconv.ParseInt(firstFields[1], 10, 64)
+	sentBytes, err := strconv.ParseInt(firstFields[1], 10, 64)
 	if err != nil {
 		return nil, err
 	}
+	result.SentBytes = sentBytes
 	result.SentPackets, err = strconv.ParseInt(firstFields[3], 10, 64)
 	if err != nil {
 		return nil, err
@@ -91,6 +77,47 @@ func GetBufferState(form *BufferStateForm) (*BufferState, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func GetBufferState(form *BufferStateForm) ([]*BufferState, error) {
+	// call command:
+	cmdArr := []string{
+		"tc",
+		"-s",
+		"-d",
+		"qdisc",
+		"show",
+		"dev",
+		form.NIC,
+	}
+	cmd := exec.Command(cmdArr[0], cmdArr[1:]...)
+	logger.GetInstance().Info("getBufferState>" + strings.Join(cmd.Args, " "))
+	outStr, err := bufferStateExecuteCommand(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	// outStr example:
+
+	// qdisc netem 1: root refcnt 2 limit 1000 rate 2048Kbit
+	//  Sent 971559 bytes 129 pkt (dropped 0, overlimits 0 requeues 0)
+	//  backlog 526178b 18p requeues 0
+	// qdisc bfifo 2: parent 1: limit 1000Kb
+	//  Sent 971559 bytes 129 pkt (dropped 0, overlimits 0 requeues 0)
+	//  backlog 0b 0p requeues 0
+
+	lines := strings.Split(outStr, "\n")
+	numQdiscs := len(lines) / 3
+	logger.GetInstance().Info(fmt.Sprintf("numQdiscs: %d", numQdiscs))
+	bufferStates := make([]*BufferState, numQdiscs)
+	for i := 0; i < numQdiscs; i++ {
+		bufferState, err := parseOneBufferState(lines[i*3 : i*3+3])
+		if err != nil {
+			return nil, err
+		}
+		bufferStates[i] = bufferState
+	}
+	return bufferStates, nil
 }
 
 func bufferStateExecuteCommand(cmd *exec.Cmd) (string, error) {
