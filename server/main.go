@@ -17,21 +17,17 @@ import (
 
 func main() {
 	args := os.Args[1:]
-	isProd := false
 	config := cors.DefaultConfig()
 	logger := logger.GetInstance()
 	if len(args) != 0 && args[0] == "prod" {
 		gin.SetMode(gin.ReleaseMode)
-		isProd = true
 		gin.DisableConsoleColor()
 	} else {
 		fmt.Println("Running in dev mode, use 'tcctl prod' to run in release mode")
 		config.AllowOrigins = []string{"http://localhost:5173"}
 	}
 	r := gin.Default()
-	if !isProd {
-		r.Use(cors.New(config))
-	}
+	r.Use(cors.New(config))
 	r.Use(sloggin.New(logger))
 	r.Use(gin.Recovery())
 
