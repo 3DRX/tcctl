@@ -4,6 +4,9 @@ description: A webui of tc-netem.
 template: splash
 hero:
   tagline: A webui of tc-netem that's beautiful and feature-rich!
+  image:
+    light: ../../assets/tcctl.png
+    dark: ../../assets/tcctl-dark.png
   actions:
     - text: Get Started
       link: /guides/getting-started/
@@ -17,8 +20,9 @@ pagefind: false
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
-import darkImage from '../../../../README.assets/manual-mode.png';
-import lightImage from '../../../../README.assets/trace-mode.png';
+import darkImage from '../../assets/manual-mode.png';
+import lightImage from '../../assets/trace-mode.png';
+import logoImage from '../../assets/tcctl-logo.png';
 
 <CardGrid stagger>
 	<Card title="Manual control" icon="seti:bicep">
