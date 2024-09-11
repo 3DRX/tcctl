@@ -3,6 +3,11 @@ title: Getting Started
 description: Setup tcctl in less than 5 minuts.
 ---
 
+## Step 0
+
+You need a hardware to work with tcctl, please check out
+[hardware setup guide](/guides/hardware-setup).
+
 ## Install & Run
 
 :::caution
