@@ -20,6 +20,7 @@ export default defineConfig({
           label: "Guides",
           items: [
             { label: "Getting Started", link: "/guides/getting-started/" },
+            { label: "Hardware Setup", link: "/guides/hardware-setup/" },
             { label: "Development Setup", link: "/guides/dev-setup/" },
           ],
         },
