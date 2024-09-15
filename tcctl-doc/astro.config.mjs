@@ -6,6 +6,16 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "tcctl",
+      defaultLocale: "en",
+      locales: {
+        en: {
+          label: "English",
+        },
+        "zh-cn": {
+          label: "简体中文",
+          lang: "zh-CN",
+        },
+      },
       logo: {
         light: "./src/assets/tcctl-cropped.png",
         dark: "./src/assets/tcctl-dark-cropped.png",
@@ -18,14 +28,38 @@ export default defineConfig({
       sidebar: [
         {
           label: "Guides",
+          translations: {
+            "zh-CN": "指南",
+          },
           items: [
-            { label: "Getting Started", link: "/guides/getting-started/" },
-            { label: "Hardware Setup", link: "/guides/hardware-setup/" },
-            { label: "Development Setup", link: "/guides/dev-setup/" },
+            {
+              label: "Getting Started",
+              translations: {
+                "zh-CN": "快速开始",
+              },
+              link: "/guides/getting-started/",
+            },
+            {
+              label: "Hardware Setup",
+              translations: {
+                "zh-CN": "硬件配置",
+              },
+              link: "/guides/hardware-setup/",
+            },
+            {
+              label: "Development Setup",
+              translations: {
+                "zh-CN": "开发配置",
+              },
+              link: "/guides/dev-setup/",
+            },
           ],
         },
         {
           label: "Reference",
+          translations: {
+            "zh-CN": "说明",
+          },
           autogenerate: { directory: "reference" },
         },
       ],

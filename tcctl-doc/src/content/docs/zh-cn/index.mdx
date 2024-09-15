@@ -1,0 +1,43 @@
+---
+title: 欢迎使用 tcctl
+description: 一个美观且功能丰富的 tc-netem 网页界面与 API 服务！
+template: splash
+hero:
+  tagline: 一个美观且功能丰富的 tc-netem 网页界面与 API 服务！
+  image:
+    light: ../../../assets/tcctl.png
+    dark: ../../../assets/tcctl-dark.png
+  actions:
+    - text: 开始使用
+      link: /zh-cn/guides/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: 查看 Github 仓库
+      link: https://github.com/3DRX/tcctl
+      icon: github
+pagefind: false
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import darkImage from '../../../assets/manual-mode.png';
+import lightImage from '../../../assets/trace-mode.png';
+import logoImage from '../../../assets/tcctl-logo.png';
+
+<CardGrid stagger>
+	<Card title="手动控制" icon="seti:bicep">
+		支持手动设置每个网口的限速规则。
+	</Card>
+	<Card title="Trace 文件控制" icon="document">
+		也可以上传一个文本文件来描述网络变化的模式。
+	</Card>
+	<Card title="可以在任何 Linux 系统上运行" icon="linux">
+		Tcctl 只依赖一个原生包：tc-netem。
+	</Card>
+	<Card title="什么是 tc 和 netem？" icon="open-book">
+		点击[文档](/zh-cn/reference/tc-netem)了解更多。
+	</Card>
+</CardGrid>
+
+<Image src={darkImage} alt="manual-mode"/>
+<Image src={lightImage} alt="trace-mode"/>
