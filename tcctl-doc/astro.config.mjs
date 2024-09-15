@@ -6,10 +6,11 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "tcctl",
-      defaultLocale: "en",
+      defaultLocale: "root",
       locales: {
-        en: {
+        root: {
           label: "English",
+          lang: "en",
         },
         "zh-cn": {
           label: "简体中文",

@@ -38,4 +38,4 @@ Then go to `http://<host_name_of_your_router>:8080`.
 
 ## Documentation
 
-[Full Documentation](https://tcctl.3drx.top/en/)
+[Full Documentation](https://tcctl.3drx.top/)

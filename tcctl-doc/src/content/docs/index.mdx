@@ -5,11 +5,11 @@ template: splash
 hero:
   tagline: A webui of tc-netem that's beautiful and feature-rich!
   image:
-    light: ../../../assets/tcctl.png
-    dark: ../../../assets/tcctl-dark.png
+    light: ../../assets/tcctl.png
+    dark: ../../assets/tcctl-dark.png
   actions:
     - text: Get Started
-      link: /en/guides/getting-started/
+      link: /guides/getting-started/
       icon: right-arrow
       variant: primary
     - text: Visit the Github repo
@@ -20,9 +20,9 @@ pagefind: false
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
-import darkImage from '../../../assets/manual-mode.png';
-import lightImage from '../../../assets/trace-mode.png';
-import logoImage from '../../../assets/tcctl-logo.png';
+import darkImage from '../../assets/manual-mode.png';
+import lightImage from '../../assets/trace-mode.png';
+import logoImage from '../../assets/tcctl-logo.png';
 
 <CardGrid stagger>
 	<Card title="Manual control" icon="seti:bicep">

@@ -8,7 +8,7 @@ which supports netem.
 This tutorial is a guide on how to setup openwrt on hardwares such as
 NanoPi r2s.
 
-![r2s](../../../../assets/r2s.jpg)
+![r2s](../../../assets/r2s.jpg)
 
 ## Prerequisites
 

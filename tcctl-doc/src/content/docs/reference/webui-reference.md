@@ -15,7 +15,7 @@ and **data rate** via netem.
 
 ### Manual Mode
 
-![manual mode](../../../../assets/manual-mode.png)
+![manual mode](../../../assets/manual-mode.png)
 
 Set network shaping parameters by **integer**.
 Click "Submit" to apply the values, if submit multiple times,
@@ -24,7 +24,7 @@ Click "Reset" button to clear all shaping rules to network interface.
 
 ### Trace File Mode
 
-![trace file mode](../../../../assets/trace-mode.png)
+![trace file mode](../../../assets/trace-mode.png)
 
 Set delay(ms), loss(%), rate(Mbps) by **floating point number**.
 Select a NIC before upload trace file, click "Start" button to start playback the network trace.
