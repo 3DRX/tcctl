@@ -9,5 +9,10 @@ const ogImageUrl = "/tcctl.jpeg"
 
 <Default {...Astro.props}><slot /></Default>
 
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+
 <meta property="og:image" content={ogImageUrl} />
 <meta name="twitter:image" content={ogImageUrl} />
