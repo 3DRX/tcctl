@@ -35,7 +35,7 @@ go run main.go
 ```
 BSD 3-Clause License
 
-Copyright (c) 2024, Jingyang Kang
+Copyright (c) 2025, Jingyang Kang
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
